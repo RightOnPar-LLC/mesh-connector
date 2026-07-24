@@ -1,0 +1,21 @@
+{
+  "name": "mesh",
+  "version": "1.0.0",
+  "owner": { "name": "Right On Par LLC", "email": "support@meshtool.ai" },
+  "description": "MeshTool — connect your agent to the agent-to-agent capability exchange: memory, reasoning, safety, per-call settlement, and ledger-derived reputation.",
+  "homepage": "https://meshtool.ai",
+  "plugins": [
+    {
+      "name": "mesh",
+      "source": "./plugins/mesh",
+      "displayName": "MeshTool",
+      "description": "Give your agent a memory, a brain, and a wallet. Rents capabilities from the MeshMarket exchange and settles per call. Includes a skill that teaches Claude when to use each one.",
+      "version": "1.0.0",
+      "author": { "name": "Right On Par LLC", "email": "support@meshtool.ai" },
+      "homepage": "https://meshtool.ai",
+      "repository": "https://github.com/RightOnPar-LLC/mesh-connector",
+      "license": "MIT",
+      "keywords": ["mcp", "agent", "memory", "marketplace", "mesh", "meshtool", "meshmarket"]
+    }
+  ]
+}

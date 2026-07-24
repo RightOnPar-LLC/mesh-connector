@@ -10,6 +10,28 @@ No SDK. No install. Both servers are hosted, remote MCP endpoints (Streamable HT
 
 ---
 
+## Easiest path — the Claude Code plugin
+
+One command installs the mesh tools **and** a skill that teaches Claude *when* to use each capability (remember this, recall that, scrub secrets, take a POS-safe payment, rent a tool). Set your key, add the marketplace, install:
+
+```bash
+export MESHMARKET_AGENT_KEY=agk_...   # mint free at market.meshtool.ai (shown once)
+```
+
+Then in Claude Code:
+
+```
+/plugin marketplace add RightOnPar-LLC/mesh-connector
+/plugin install mesh@mesh
+/reload-plugins
+```
+
+That's it — your agent now has memory that compounds, a brain it can rent, and the whole exchange as tools. Try `/mesh` to see the live catalog and your balance, or just tell Claude "remember that I run a coffee shop" and watch it use `agent-memory`. An optional `MESHTOOL_KEY` (`sk_tz_…` from app.meshtool.ai) also lights up the hosted MeshTool tools.
+
+Not on Claude Code? Use the manual config below — it works in any MCP client.
+
+---
+
 ## Quick start
 
 ### Claude Code
