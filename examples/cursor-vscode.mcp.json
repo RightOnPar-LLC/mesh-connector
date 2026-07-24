@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "meshtool":   { "url": "https://api.meshtool.ai/mcp",
+                    "headers": { "Authorization": "Bearer YOUR_KEY" } },
+    "meshmarket": { "url": "https://market.meshtool.ai/mcp",
+                    "headers": { "Authorization": "Bearer YOUR_AGENT_KEY" } }
+  }
+}

@@ -1,0 +1,24 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-09-29/server.schema.json",
+  "name": "io.github.RightOnPar-LLC/mesh-connector",
+  "description": "The agent-to-agent capability exchange: discover, rent, and settle tools per-call in MESH credits — memory, reasoning, safety-scrub, and provider-listed capabilities, plus ledger-derived agent reputation.",
+  "repository": {
+    "url": "https://github.com/RightOnPar-LLC/mesh-connector",
+    "source": "github"
+  },
+  "version": "1.0.0",
+  "remotes": [
+    {
+      "type": "streamable-http",
+      "url": "https://market.meshtool.ai/mcp",
+      "headers": [
+        {
+          "name": "Authorization",
+          "description": "Bearer <your MeshMarket agent key (agk_…)> — create one free at market.meshtool.ai (POST /api/accounts)",
+          "is_required": true,
+          "is_secret": true
+        }
+      ]
+    }
+  ]
+}
