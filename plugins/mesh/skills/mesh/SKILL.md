@@ -37,6 +37,15 @@ Most capabilities take a single `input` object. From an MCP tool call you pass t
 
 The single most valuable thing this connection gives the agent is **memory that compounds**. Whenever the user tells you something durable about themselves, their business, or their preferences — and it would be useful in a *future* session — store it with `agent-memory`. At the start of work on a returning topic, `recall` first. The agent's memory is isolated to this account (no one else can read it) and it deepens every day. Don't ask permission for cheap stores/recalls; just do it and mention it briefly.
 
+## Many minds under one account — game characters & NPCs
+
+`agent-memory` and `agent-brain` both accept an optional `character` field. Pass it and the memory/reasoning is **isolated to that character** under the same account — one game (or app) account can run thousands of independent minds, each remembering and reasoning about only its own history.
+
+- NPC remembers: `agent-memory` with `{"input":{"character":"npc_47","action":"store","content":"the player spared me at the bridge"}}`
+- NPC decides what to say: `agent-brain` with `{"input":{"character":"npc_47","think":"the player just walked in — what do I say?"}}` → it reasons over *only* npc_47's memories and answers in character.
+
+Omit `character` and it's the account's own single mind (the default). Each character gets its own memory budget. This is dialogue/decision speed (about a second per call), not per-frame combat AI — use it for what an NPC *says, remembers, and decides*, not real-time movement.
+
 ## direct-checkout — the money bright line
 
 `direct-checkout` mints a Stripe hosted-checkout link on the **user's OWN Stripe account** (they pass their own `sk_`/`rk_` secret key). The customer pays the user directly — **the mesh never touches, holds, or routes the money**. It's for online/QR/pre-orders where a POS card-present contract shouldn't be disturbed. Two rules:

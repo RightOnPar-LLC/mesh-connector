@@ -1,0 +1,33 @@
+name: Publish to MCP Registry
+
+# Publishes server.json to the Official MCP Registry (registry.modelcontextprotocol.io),
+# which auto-propagates to the GitHub MCP Registry and PulseMCP.
+#
+# Auth is GitHub OIDC — it proves ownership of the io.github.RightOnPar-LLC
+# namespace with NO secret and NO interactive login. This job does NOT run on
+# its own: it fires only when you push a v* tag or click "Run workflow" in the
+# Actions tab. That trigger is the publish signature.
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch: {}
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write   # required for OIDC auth to the registry
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Install mcp-publisher
+        run: |
+          curl -L "https://github.com/modelcontextprotocol/registry/releases/latest/download/mcp-publisher_$(uname -s | tr '[:upper:]' '[:lower:]')_$(uname -m | sed 's/x86_64/amd64/;s/aarch64/arm64/').tar.gz" | tar xz mcp-publisher
+
+      - name: Authenticate (GitHub OIDC — proves the io.github.RightOnPar-LLC namespace)
+        run: ./mcp-publisher login github-oidc
+
+      - name: Publish server.json to the MCP Registry
+        run: ./mcp-publisher publish
