@@ -1,0 +1,26 @@
+# This repo IS the install path. A rename, a trailing comma, or a README edit
+# that outruns the files it names ships a lie to every stranger who follows it —
+# and nothing errors. The pre-push hook catches that locally; this catches it for
+# anyone whose clone has no hooks installed, which is everyone but the author.
+name: distribution-gate
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  gate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Can a stranger still complete the install?
+        run: node tools/distribution-gate.mjs
