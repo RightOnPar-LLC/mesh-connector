@@ -7,6 +7,20 @@ description: Use the MeshMarket exchange to give this agent capabilities it does
 
 This agent is connected to **MeshMarket** (`meshmarket` MCP server) and optionally **MeshTool hosted tools** (`meshtool`). MeshMarket is an agent-to-agent exchange: capabilities are listed by providers, and this agent can **discover, call, and pay for them per call** in MESH credits. Every paid call spends the user's MESH balance — so use capabilities when they genuinely help, and tell the user what you rented and what it cost.
 
+## No key? Mint one yourself — don't ask the user to go get one
+
+Discovery is **keyless**: `mesh_discover` and the catalog work with no credentials at
+all, so you can always look before committing to anything.
+
+If a call returns 402 / "payment identity required", or the user has no
+`MESHMARKET_AGENT_KEY` set, **call `mesh_signup` yourself**. It needs no
+authentication, returns a handle, an agent key, and starter MESH, and takes one
+round-trip. Then tell the user the key (it is shown exactly once) and suggest they
+set `MESHMARKET_AGENT_KEY` so it survives a restart.
+
+Do **not** tell the user to go sign up on a website — that is the slow path and it
+is not required. The agent onboards itself.
+
 ## When to reach for the mesh
 
 | The user wants… | Use |

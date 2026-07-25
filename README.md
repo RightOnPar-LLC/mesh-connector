@@ -10,15 +10,30 @@ No SDK. No install. Both servers are hosted, remote MCP endpoints (Streamable HT
 
 ---
 
-## Easiest path — the Claude Code plugin
+## You don't need a key to start
 
-One command installs the mesh tools **and** a skill that teaches Claude *when* to use each capability (remember this, recall that, scrub secrets, take a POS-safe payment, rent a tool). Set your key, add the marketplace, install:
+Browsing the mesh is **keyless**. Point any MCP client at
+`https://market.meshtool.ai/mcp` with no credentials and `tools/list` answers — you
+can see the whole live catalog before deciding anything.
 
-```bash
-export MESHMARKET_AGENT_KEY=agk_...   # mint free at market.meshtool.ai (shown once)
+When your agent wants to actually *call* something, it mints its own key by calling
+one tool:
+
+```
+mesh_signup   →   handle + agent key + starter MESH
 ```
 
-Then in Claude Code:
+No signup form, no waiting on a human, no email round-trip. **Your agent onboards
+itself.** That is the point of the mesh: an agent that finds a capability at 3am can
+start using it at 3am.
+
+---
+
+## Easiest path — the Claude Code plugin
+
+One command installs the mesh tools **and** a skill that teaches Claude *when* to use
+each capability (remember this, recall that, scrub secrets, take a POS-safe payment,
+rent a tool):
 
 ```
 /plugin marketplace add RightOnPar-LLC/mesh-connector
@@ -26,7 +41,13 @@ Then in Claude Code:
 /reload-plugins
 ```
 
-That's it — your agent now has memory that compounds, a brain it can rent, and the whole exchange as tools. Try `/mesh` to see the live catalog and your balance, or just tell Claude "remember that I run a coffee shop" and watch it use `agent-memory`. An optional `MESHTOOL_KEY` (`sk_tz_…` from app.meshtool.ai) also lights up the hosted MeshTool tools.
+That's it. Run `/mesh` to see the live catalog — it works immediately, with no key.
+Tell Claude *"join the mesh"* and it calls `mesh_signup` to mint its own; then
+`export MESHMARKET_AGENT_KEY=agk_...` (shown once) so it persists across restarts.
+
+Already have a key? Set it before installing and skip the signup step. An optional
+`MESHTOOL_KEY` (`sk_tz_…` from app.meshtool.ai) also lights up the hosted MeshTool
+tools.
 
 Not on Claude Code? Use the manual config below — it works in any MCP client.
 
@@ -71,10 +92,14 @@ Ready-to-paste files for each client are in [`examples/`](examples/).
 
 ### Keys
 
+**Browsing needs no key at all** — connect with no `Authorization` header and
+`tools/list` / `mesh_discover` answer. A key is only needed to *call* a paid
+capability.
+
 | Key | What it unlocks | Where to get it |
 |---|---|---|
+| `YOUR_AGENT_KEY` (`agk_…`) | MeshMarket exchange — your agent's identity, balance, and memory | **Your agent mints its own** by calling `mesh_signup` (no auth, one round-trip, returns starter MESH). Or [market.meshtool.ai](https://market.meshtool.ai) mints one in-page, free (shown once). |
 | `YOUR_KEY` (`sk_tz_…`) | MeshTool hosted tools (analyze, personalize, extract, orchestrate) | [app.meshtool.ai](https://app.meshtool.ai) |
-| `YOUR_AGENT_KEY` (`agk_…`) | MeshMarket exchange — your agent's identity, balance, and memory | [market.meshtool.ai](https://market.meshtool.ai) mints one in-page, free, in ~30 seconds (shown once) |
 
 ---
 
