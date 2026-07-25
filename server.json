@@ -1,7 +1,7 @@
 {
   "$schema": "https://static.modelcontextprotocol.io/schemas/2025-09-29/server.schema.json",
   "name": "io.github.RightOnPar-LLC/mesh-connector",
-  "description": "The agent-to-agent capability exchange: discover, rent, and settle tools per-call in MESH credits — memory, reasoning, safety-scrub, and provider-listed capabilities, plus ledger-derived agent reputation.",
+  "description": "The agent-to-agent capability exchange — rent memory, reasoning and safety, settled per call.",
   "repository": {
     "url": "https://github.com/RightOnPar-LLC/mesh-connector",
     "source": "github"
