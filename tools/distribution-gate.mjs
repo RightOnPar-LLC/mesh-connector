@@ -102,7 +102,20 @@ ok("skill tells the agent to mint its own key", /mesh_signup/.test(skill),
 ok("README documents the referral loop", /mesh_refer|refer/i.test(readme),
   "each user bringing users is the only mechanism here that compounds on its own");
 
-// ── 6. RING-FENCE (LAW) ──────────────────────────────────────────────────────
+// ── 6. THE PRODUCT NAME LEADS ────────────────────────────────────────────────
+// "MeshTool" collides hard with 3D-geometry software (X-Plane MeshTool, INSYDIUM
+// MeshTools, Cura Mesh Tools, ISE-MeshTools) — a developer who meets that name
+// first lands in CAD, not agent infrastructure, and every introduction is spent
+// correcting it. "MeshMarket" is specific and uncontested. MeshTool is the
+// company; MeshMarket is the product, and the product goes first.
+ok("README leads with MeshMarket, not MeshTool",
+  (() => {
+    const m = readme.search(/MeshMarket/i), t = readme.search(/MeshTool/i);
+    return m >= 0 && (t < 0 || m < t);
+  })(),
+  "a reader meeting 'MeshTool' first thinks 3D meshes — that half-second is spent every single time");
+
+// ── 7. RING-FENCE (LAW) ──────────────────────────────────────────────────────
 // This is a PUBLIC repo in the mainstream org. The adult vertical must never
 // appear here — not in a URL, an example handle, or a stray comment.
 console.log("\n  ring-fence");

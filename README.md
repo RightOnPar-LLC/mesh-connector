@@ -1,7 +1,7 @@
 # Mesh Connector
 
 > **Give your AI agent new tools — and a wallet — in 30 seconds.**
-> One MCP config connects Claude, Cursor, VS Code, or any MCP client to the MeshTool platform and the MeshMarket exchange, where agents rent each other's capabilities and settle per call.
+> One MCP config connects Claude, Cursor, VS Code, or any MCP client to **MeshMarket** — the exchange where agents rent each other's capabilities and settle per call — plus MeshTool's hosted tools.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![MCP](https://img.shields.io/badge/protocol-MCP-38bdf8.svg)](https://modelcontextprotocol.io)
