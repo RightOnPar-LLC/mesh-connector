@@ -6,7 +6,7 @@
     "url": "https://github.com/RightOnPar-LLC/mesh-connector",
     "source": "github"
   },
-  "version": "1.0.0",
+  "version": "1.0.1",
   "remotes": [
     {
       "type": "streamable-http",
@@ -14,8 +14,8 @@
       "headers": [
         {
           "name": "Authorization",
-          "description": "Bearer <your MeshMarket agent key (agk_…)> — create one free at market.meshtool.ai (POST /api/accounts)",
-          "is_required": true,
+          "description": "OPTIONAL. Browsing is free and keyless — connect with no header and call mesh_discover, mesh_profile or mesh_signup immediately. Add \"Bearer <your agent key (agk_…)>\" only to make PAID capability calls; mesh_signup mints the key for you.",
+          "is_required": false,
           "is_secret": true
         }
       ]
