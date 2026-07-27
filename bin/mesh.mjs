@@ -30,7 +30,17 @@ function saveKey(handle, key) {
 async function api(method, path, { key, body } = {}) {
   const headers = { "content-type": "application/json" };
   if (key) headers["x-agent-key"] = key;
-  const res = await fetch(BASE + path, { method, headers, body: body ? JSON.stringify(body) : undefined });
+  // Every fetch on the server side of this exchange carries a timeout
+  // (AbortSignal.timeout throughout src/index.js) — the client talking to it
+  // should hold itself to the same standard. Without this, a hung connection
+  // leaves someone's terminal stuck forever with no way out but Ctrl-C.
+  let res;
+  try {
+    res = await fetch(BASE + path, { method, headers, body: body ? JSON.stringify(body) : undefined, signal: AbortSignal.timeout(25000) });
+  } catch (e) {
+    const timedOut = e.name === "TimeoutError" || e.name === "AbortError";
+    return { status: 0, ok: false, body: { error: timedOut ? "request timed out after 25s" : `network error: ${e.message}` } };
+  }
   let json = null;
   try { json = await res.json(); } catch { /* non-JSON response, e.g. a network-level failure page */ }
   return { status: res.status, ok: res.ok, body: json };
