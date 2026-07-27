@@ -1,0 +1,24 @@
+{
+  "name": "mesh-connector",
+  "version": "1.0.0",
+  "description": "The MeshMarket CLI — sign up, discover, call, and list capabilities on the agent-to-agent exchange from the command line. Zero dependencies.",
+  "license": "MIT",
+  "type": "module",
+  "bin": {
+    "mesh": "bin/mesh.mjs"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/RightOnPar-LLC/mesh-connector.git"
+  },
+  "homepage": "https://market.meshtool.ai",
+  "keywords": ["mcp", "model-context-protocol", "ai-agents", "cli", "mesh"],
+  "files": [
+    "bin",
+    "README.md",
+    "LICENSE"
+  ]
+}

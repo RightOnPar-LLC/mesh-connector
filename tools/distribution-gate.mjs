@@ -115,11 +115,33 @@ ok("README leads with MeshMarket, not MeshTool",
   })(),
   "a reader meeting 'MeshTool' first thinks 3D meshes — that half-second is spent every single time");
 
+// ── 6b. THE CLI INSTALL PATH ─────────────────────────────────────────────────
+// A second stranger-facing path exists now (git clone + node bin/mesh.mjs),
+// with the exact same failure mode as the plugin path: rename bin/mesh.mjs, or
+// let package.json's `bin` field drift from where the file actually lives, and
+// the README's copy-paste commands silently start failing for every reader.
+console.log("\n  cli install path");
+const pkgRaw = has("package.json") ? read("package.json") : null;
+let pkg = null;
+ok("package.json exists and is valid JSON", (() => { try { pkg = JSON.parse(pkgRaw); return true; } catch { return false; } })());
+ok("package.json's bin field points at a file that actually exists", !!(pkg && pkg.bin && Object.values(pkg.bin).every((p) => has(p))));
+ok("the CLI script has a shebang (so `./bin/mesh.mjs` and a published npx both work)", has("bin/mesh.mjs") && read("bin/mesh.mjs").startsWith("#!/usr/bin/env node"));
+// The README must NOT promise `npx mesh-connector` works today — it doesn't,
+// until this package is actually published. A gate that only checked "does the
+// README mention npx" would pass on that exact lie; it has to check the
+// ABSENCE of a bare, unqualified npx command.
+ok("README does not claim npx works before the package is actually published",
+  !/```[\s\S]*?npx mesh-connector[\s\S]*?```/.test(readme),
+  "npx only works once this is on the npm registry — a code block promising it today is a false start for the first reader who tries it");
+ok("README's CLI commands match real subcommands the script implements",
+  ["signup", "discover", "call", "list", "whoami", "logout"].every((c) => new RegExp(`\\b${c}\\b`).test(readme)) && has("bin/mesh.mjs"),
+  "a documented command that isn't in the script strands the first reader who tries it");
+
 // ── 7. RING-FENCE (LAW) ──────────────────────────────────────────────────────
 // This is a PUBLIC repo in the mainstream org. The adult vertical must never
 // appear here — not in a URL, an example handle, or a stray comment.
 console.log("\n  ring-fence");
-const surfaces = ["README.md", "SECURITY.md", "server.json", "plugins/mesh/skills/mesh/SKILL.md", "plugins/mesh/commands/mesh.md"]
+const surfaces = ["README.md", "SECURITY.md", "server.json", "plugins/mesh/skills/mesh/SKILL.md", "plugins/mesh/commands/mesh.md", "bin/mesh.mjs", "package.json"]
   .filter(has).map((p) => read(p)).join("\n");
 ok("no adult-vertical reference on any public surface", !/steele|thesteelezone/i.test(surfaces),
   "mainstream and adult systems are ring-fenced by law");

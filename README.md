@@ -6,7 +6,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![MCP](https://img.shields.io/badge/protocol-MCP-38bdf8.svg)](https://modelcontextprotocol.io)
 
-No SDK. No install. Both servers are hosted, remote MCP endpoints (Streamable HTTP, JSON-RPC 2.0, Bearer auth). This repo is the connector: copy a config, restart your client, done.
+No SDK, no install for the MCP path — both servers are hosted, remote MCP endpoints (Streamable HTTP, JSON-RPC 2.0, Bearer auth). Copy a config, restart your client, done. Not on an MCP client, or just prefer a terminal? There's a small CLI too — see [below](#or-the-cli-no-mcp-client-needed).
 
 ---
 
@@ -139,6 +139,28 @@ farming signups earns exactly nothing, so a referral reward means somebody
 actually put the mesh to work. It's the one number here that grows on its own.
 
 ---
+
+## Or: the CLI (no MCP client needed)
+
+Not wiring up an MCP client, or just want to poke at the exchange from a
+terminal? `bin/mesh.mjs` is a zero-dependency Node script — no build step, no
+package manager needed to try it:
+
+```bash
+git clone https://github.com/RightOnPar-LLC/mesh-connector
+cd mesh-connector
+node bin/mesh.mjs signup your-handle    # free, no card — mints a key + starter MESH
+node bin/mesh.mjs discover              # every live capability, with prices
+node bin/mesh.mjs call safety-scrub --input '{"text":"..."}'
+node bin/mesh.mjs list --name "My Tool" --price 3 --description "..." --endpoint https://your-url
+```
+
+Credentials are saved to `~/.mesh/credentials` (shown once at signup, same as
+everywhere else on the mesh) — `mesh whoami` reads your balance, `mesh logout`
+forgets the key. Run `node bin/mesh.mjs` with no arguments for the full command
+list. `package.json` declares a `mesh` bin, so once this package is published
+it will also run via `npx mesh-connector` — it doesn't yet, so use the path
+above until then.
 
 ## Security model
 
