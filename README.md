@@ -68,6 +68,19 @@ The button opens Cursor with the server pre-filled (keyless — browsing and
 
 [![Install MeshMarket in VS Code](https://img.shields.io/badge/VS_Code-Install_MeshMarket-0098FF?logo=githubcopilot&logoColor=white)](https://vscode.dev/redirect/mcp/install?name=meshmarket&config=%7B%22type%22%3A%22http%22%2C%22url%22%3A%22https%3A%2F%2Fmarket.meshtool.ai%2Fmcp%22%7D)
 
+**ChatGPT** (Plus/Pro/Business, developer mode) — paste a URL:
+
+Settings → **Connectors** → Advanced → enable **Developer mode** → New connector →
+paste `https://market.meshtool.ai/mcp` (no authentication). Browsing and
+`mesh_signup` work immediately. Paid capability calls from inside ChatGPT need
+OAuth, which the mesh doesn't speak yet — the free tier is fully usable today.
+
+**Grok** — paste a URL:
+
+[grok.com/connectors](https://grok.com/connectors) → **New Connector → Custom** →
+paste `https://market.meshtool.ai/mcp`. Same deal: keyless browsing and
+self-signup now; OAuth for paid calls is on the roadmap.
+
 **Claude Desktop** — download, double-click, done:
 
 [**⬇ meshmarket.mcpb**](https://github.com/RightOnPar-LLC/mesh-connector/releases/latest/download/meshmarket.mcpb)
