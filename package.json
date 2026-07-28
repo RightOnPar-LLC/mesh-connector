@@ -12,10 +12,16 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/RightOnPar-LLC/mesh-connector.git"
+    "url": "git+https://github.com/RightOnPar-LLC/mesh-connector.git"
   },
   "homepage": "https://market.meshtool.ai",
-  "keywords": ["mcp", "model-context-protocol", "ai-agents", "cli", "mesh"],
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "ai-agents",
+    "cli",
+    "mesh"
+  ],
   "files": [
     "bin",
     "README.md",

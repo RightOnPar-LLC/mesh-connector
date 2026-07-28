@@ -126,13 +126,14 @@ let pkg = null;
 ok("package.json exists and is valid JSON", (() => { try { pkg = JSON.parse(pkgRaw); return true; } catch { return false; } })());
 ok("package.json's bin field points at a file that actually exists", !!(pkg && pkg.bin && Object.values(pkg.bin).every((p) => has(p))));
 ok("the CLI script has a shebang (so `./bin/mesh.mjs` and a published npx both work)", has("bin/mesh.mjs") && read("bin/mesh.mjs").startsWith("#!/usr/bin/env node"));
-// The README must NOT promise `npx mesh-connector` works today — it doesn't,
-// until this package is actually published. A gate that only checked "does the
-// README mention npx" would pass on that exact lie; it has to check the
-// ABSENCE of a bare, unqualified npx command.
-ok("README does not claim npx works before the package is actually published",
-  !/```[\s\S]*?npx mesh-connector[\s\S]*?```/.test(readme),
-  "npx only works once this is on the npm registry — a code block promising it today is a false start for the first reader who tries it");
+// PUBLISHED 2026-07-27 (mesh-connector@1.0.0, npm) — live-verified: npx
+// mesh-connector signup/discover/whoami all confirmed working against
+// production before this check was flipped. `npm pkg get name` is the source
+// of truth for the name, not a hardcoded string, so a future rename can't
+// silently desync this check from package.json.
+ok("README documents the published npx path (package.json's own name, not a hardcoded guess)",
+  (() => { try { return new RegExp("```[\\s\\S]*?npx " + JSON.parse(pkgRaw).name + "[\\s\\S]*?```").test(readme); } catch { return false; } })(),
+  "the package is live on npm — the README should lead with npx, not git clone, for the reader who just wants to try it");
 ok("README's CLI commands match real subcommands the script implements",
   ["signup", "discover", "call", "list", "whoami", "logout"].every((c) => new RegExp(`\\b${c}\\b`).test(readme)) && has("bin/mesh.mjs"),
   "a documented command that isn't in the script strands the first reader who tries it");

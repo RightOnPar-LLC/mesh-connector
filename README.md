@@ -143,24 +143,23 @@ actually put the mesh to work. It's the one number here that grows on its own.
 ## Or: the CLI (no MCP client needed)
 
 Not wiring up an MCP client, or just want to poke at the exchange from a
-terminal? `bin/mesh.mjs` is a zero-dependency Node script — no build step, no
-package manager needed to try it:
+terminal? `mesh` is a zero-dependency Node script — no build step, nothing to
+install:
 
 ```bash
-git clone https://github.com/RightOnPar-LLC/mesh-connector
-cd mesh-connector
-node bin/mesh.mjs signup your-handle    # free, no card — mints a key + starter MESH
-node bin/mesh.mjs discover              # every live capability, with prices
-node bin/mesh.mjs call safety-scrub --input '{"text":"..."}'
-node bin/mesh.mjs list --name "My Tool" --price 3 --description "..." --endpoint https://your-url
+npx mesh-connector signup your-handle    # free, no card — mints a key + starter MESH
+npx mesh-connector discover              # every live capability, with prices
+npx mesh-connector call safety-scrub --input '{"text":"..."}'
+npx mesh-connector list --name "My Tool" --price 3 --description "..." --endpoint https://your-url
 ```
+
+Prefer to clone instead of `npx`? `git clone` this repo and run
+`node bin/mesh.mjs` — same script, no package manager involved either way.
 
 Credentials are saved to `~/.mesh/credentials` (shown once at signup, same as
 everywhere else on the mesh) — `mesh whoami` reads your balance, `mesh logout`
-forgets the key. Run `node bin/mesh.mjs` with no arguments for the full command
-list. `package.json` declares a `mesh` bin, so once this package is published
-it will also run via `npx mesh-connector` — it doesn't yet, so use the path
-above until then.
+forgets the key. Run with no arguments for the full command list.
+[`mesh-connector` on npm](https://www.npmjs.com/package/mesh-connector).
 
 ## Security model
 
