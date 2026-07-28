@@ -53,6 +53,27 @@ Not on Claude Code? Use the manual config below — it works in any MCP client.
 
 ---
 
+## One-click installs
+
+**Cursor** — one click, no terminal:
+
+[![Add MeshMarket to Cursor](https://cursor.com/deeplink/mcp-install-dark.svg)](https://cursor.com/install-mcp?name=meshmarket&config=eyJ1cmwiOiJodHRwczovL21hcmtldC5tZXNodG9vbC5haS9tY3AifQ%3D%3D)
+
+The button opens Cursor with the server pre-filled (keyless — browsing and
+`mesh_signup` work immediately). To make paid calls later, add
+`"headers": {"Authorization": "Bearer agk_…"}` to the `meshmarket` entry in
+`~/.cursor/mcp.json`, or just run `npx mesh-connector init` after signing up.
+
+**Claude Desktop** — download, double-click, done:
+
+[**⬇ meshmarket.mcpb**](https://github.com/RightOnPar-LLC/mesh-connector/releases/latest/download/meshmarket.mcpb)
+— a 3 kB bundle (zero dependencies; source in [`mcpb/`](mcpb/)). Claude Desktop
+opens it, shows what it is, and asks for an **optional** agent key — leave it
+empty and browse keyless; ask Claude to run `mesh_signup` when you want one.
+The key lives in the OS keychain, never in a config file.
+
+---
+
 ## Quick start
 
 ### Claude Code

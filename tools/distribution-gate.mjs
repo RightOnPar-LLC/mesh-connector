@@ -160,6 +160,32 @@ ok("meshmarket alias package exists and its bin re-exports the real CLI",
     && /mesh-connector\/bin\/mesh\.mjs/.test(read("alias/meshmarket/bin/meshmarket.mjs")),
   "npx meshmarket is published — if the shim drifts from the real CLI, the product-name path rots");
 
+// ── 6c. THE ONE-CLICK PATHS ──────────────────────────────────────────────────
+// SHIPPED 1.1.x: two zero-terminal installs. Both are opaque blobs to a human
+// reviewer — a base64 config and a binary bundle — which is exactly why they
+// need machine checks: a typo in either ships a button that 404s or wires the
+// wrong endpoint, and nobody would notice until a stranger's first click fails.
+console.log("\n  one-click installs");
+ok("README's Cursor deeplink decodes to the real MCP endpoint",
+  (() => {
+    const m = readme.match(/cursor\.com\/install-mcp\?name=meshmarket&config=([A-Za-z0-9+/%=]+)/);
+    if (!m) return false;
+    try { return JSON.parse(Buffer.from(decodeURIComponent(m[1]), "base64").toString()).url === "https://market.meshtool.ai/mcp"; }
+    catch { return false; }
+  })(),
+  "a deeplink whose embedded config drifts from the endpoint wires every clicker to a dead server");
+let mcpb = null;
+ok("mcpb/manifest.json is valid JSON with a semver version",
+  (() => { try { mcpb = JSON.parse(read("mcpb/manifest.json")); return /^\d+\.\d+\.\d+$/.test(mcpb.version); } catch { return false; } })());
+ok("mcpb entry_point exists on disk", !!(mcpb && has(join("mcpb", mcpb.server?.entry_point || "∅"))),
+  "a bundle whose manifest points at a missing file installs, then fails on first launch");
+ok("mcpb agent key is OPTIONAL (keyless install must work)",
+  !!(mcpb && mcpb.user_config?.agent_key && mcpb.user_config.agent_key.required === false),
+  "requiring a key at install would close the self-onboarding front door on Desktop");
+ok("README's .mcpb link uses the stable releases/latest path",
+  /releases\/latest\/download\/meshmarket\.mcpb/.test(readme),
+  "a version-pinned download link goes stale on the next release; latest/ never does");
+
 // ── 7. RING-FENCE (LAW) ──────────────────────────────────────────────────────
 // This is a PUBLIC repo in the mainstream org. The adult vertical must never
 // appear here — not in a URL, an example handle, or a stray comment.
