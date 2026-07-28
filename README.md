@@ -142,16 +142,24 @@ actually put the mesh to work. It's the one number here that grows on its own.
 
 ## Or: the CLI (no MCP client needed)
 
-Not wiring up an MCP client, or just want to poke at the exchange from a
-terminal? `mesh` is a zero-dependency Node script — no build step, nothing to
+Not wiring up an MCP client by hand, or just want to poke at the exchange from
+a terminal? `mesh` is a zero-dependency Node script — no build step, nothing to
 install:
 
 ```bash
+npx mesh-connector init                  # auto-wire Claude Code / Cursor / Claude Desktop
 npx mesh-connector signup your-handle    # free, no card — mints a key + starter MESH
 npx mesh-connector discover              # every live capability, with prices
 npx mesh-connector call safety-scrub --input '{"text":"..."}'
 npx mesh-connector list --name "My Tool" --price 3 --description "..." --endpoint https://your-url
 ```
+
+`init` detects which MCP clients are on the machine and writes the config for
+you — merge-only (every other server in the file survives), a `.mesh-backup`
+next to anything it touches, `--dry-run` to preview. It wires **keyless** by
+default, which is a working install: browsing and `mesh_signup` need no key.
+Sign up (or `mesh login agk_…` with an existing key) and rerun `init` to wire
+paid calls. `npx meshmarket` is the same CLI under the product's name.
 
 Prefer to clone instead of `npx`? `git clone` this repo and run
 `node bin/mesh.mjs` — same script, no package manager involved either way.

@@ -1,14 +1,17 @@
 {
-  "name": "mesh-connector",
-  "version": "1.1.0",
-  "description": "The MeshMarket CLI — sign up, discover, call, and list capabilities on the agent-to-agent exchange from the command line. Zero dependencies.",
+  "name": "meshmarket",
+  "version": "1.0.0",
+  "description": "The MeshMarket CLI — alias for mesh-connector. `npx meshmarket` wires and drives the agent-to-agent exchange.",
   "license": "MIT",
   "type": "module",
   "bin": {
-    "mesh": "bin/mesh.mjs"
+    "meshmarket": "bin/meshmarket.mjs"
   },
   "engines": {
     "node": ">=18"
+  },
+  "dependencies": {
+    "mesh-connector": "^1.1.0"
   },
   "repository": {
     "type": "git",
@@ -20,11 +23,11 @@
     "model-context-protocol",
     "ai-agents",
     "cli",
-    "mesh"
+    "mesh",
+    "meshmarket"
   ],
   "files": [
     "bin",
-    "README.md",
-    "LICENSE"
+    "README.md"
   ]
 }

@@ -127,6 +127,93 @@ function cmdLogout() {
   else console.log("Not signed in.");
 }
 
+// ── mesh login — re-attach an existing key ───────────────────────────────────
+// The signup key is shown once; before this command existed, moving to a new
+// machine (or deleting ~/.mesh) orphaned the account — with credits in it.
+// The key is verified against the live API BEFORE saving, so a typo'd key
+// fails loudly here instead of as a confusing 401 three commands later.
+async function cmdLogin(key) {
+  if (!key) { console.error("usage: mesh login <agk_...>   (the key shown once at signup)"); process.exit(1); }
+  const r = await api("GET", "/api/account", { key });
+  if (!r.ok) { report(r); process.exit(1); }
+  saveKey(r.body.handle, key);
+  console.log(`Signed in as @${r.body.handle} — ${r.body.credits} MESH. Key saved to ${CRED_FILE}.`);
+}
+
+// ── mesh init — detect MCP clients and wire the mesh into them ───────────────
+// Before this, wiring was copy-paste from three example files, per client, by
+// hand — the last manual step between a stranger and a connected agent. Rules:
+//   • NEVER clobber: configs are parsed first; a file that doesn't parse is
+//     skipped with a warning (it's the user's config, maybe mid-edit — not ours
+//     to "fix"), and every modified file gets a .mesh-backup sibling first.
+//   • Keyless by default: the server's Authorization header is OPTIONAL —
+//     browsing and mesh_signup work with no key, so wiring without one is a
+//     working install, not a broken one. If a key is saved, it's included.
+//   • Merge, don't replace: only mcpServers.meshmarket is touched; every other
+//     server and setting in the file survives byte-for-byte (via JSON round-
+//     trip — comments don't survive, which is why unparseable files are skipped
+//     rather than rewritten).
+const MCP_URL = () => BASE + "/mcp";
+
+function clientTargets() {
+  const home = homedir();
+  const targets = [];
+  // Claude Code keeps user-scope MCP servers at the top level of ~/.claude.json.
+  const claudeJson = join(home, ".claude.json");
+  if (existsSync(claudeJson))
+    targets.push({ id: "claude-code", label: "Claude Code", file: claudeJson, entry: (key) => ({ type: "http", url: MCP_URL(), ...(key ? { headers: { Authorization: `Bearer ${key}` } } : {}) }) });
+  // Cursor reads ~/.cursor/mcp.json globally (same shape as its per-project .cursor/mcp.json).
+  const cursorDir = join(home, ".cursor");
+  if (existsSync(cursorDir))
+    targets.push({ id: "cursor", label: "Cursor", file: join(cursorDir, "mcp.json"), entry: (key) => ({ url: MCP_URL(), ...(key ? { headers: { Authorization: `Bearer ${key}` } } : {}) }) });
+  // Claude Desktop can't reach remote servers natively — it goes through
+  // mcp-remote, exactly as examples/claude-desktop.json documents.
+  const desktopCfg = process.platform === "win32"
+    ? join(process.env.APPDATA || join(home, "AppData", "Roaming"), "Claude", "claude_desktop_config.json")
+    : process.platform === "darwin"
+      ? join(home, "Library", "Application Support", "Claude", "claude_desktop_config.json")
+      : join(home, ".config", "Claude", "claude_desktop_config.json");
+  if (existsSync(desktopCfg))
+    targets.push({ id: "claude-desktop", label: "Claude Desktop", file: desktopCfg, entry: (key) => ({ command: "npx", args: ["-y", "mcp-remote", MCP_URL(), ...(key ? ["--header", `Authorization: Bearer ${key}`] : [])] }) });
+  return targets;
+}
+
+function cmdInit(opts) {
+  const key = loadKey();
+  const dry = "dry-run" in opts;
+  let targets = clientTargets();
+  if (opts.client) targets = targets.filter((t) => t.id === opts.client);
+  if (!targets.length) {
+    console.log(opts.client
+      ? `No config found for "${opts.client}". Valid clients: claude-code, cursor, claude-desktop (must be installed).`
+      : "No MCP clients detected (looked for Claude Code, Cursor, Claude Desktop). Wire one manually: https://github.com/RightOnPar-LLC/mesh-connector#quick-start");
+    process.exit(opts.client ? 1 : 0);
+  }
+  let changed = 0;
+  for (const t of targets) {
+    let cfg = {};
+    if (existsSync(t.file)) {
+      try { cfg = JSON.parse(readFileSync(t.file, "utf8")); }
+      catch { console.error(`  ✗ ${t.label} — ${t.file} is not valid JSON; skipped (fix it and rerun, nothing was touched)`); continue; }
+    }
+    const entry = t.entry(key);
+    const current = (cfg.mcpServers || {}).meshmarket;
+    if (JSON.stringify(current) === JSON.stringify(entry)) { console.log(`  = ${t.label} — already wired (${t.file})`); continue; }
+    if (dry) { console.log(`  → ${t.label} — would ${current ? "update" : "add"} mcpServers.meshmarket in ${t.file}:\n      ${JSON.stringify(entry)}`); continue; }
+    if (existsSync(t.file)) writeFileSync(t.file + ".mesh-backup", readFileSync(t.file));
+    cfg.mcpServers = { ...(cfg.mcpServers || {}), meshmarket: entry };
+    writeFileSync(t.file, JSON.stringify(cfg, null, 2));
+    console.log(`  ✓ ${t.label} — ${current ? "updated" : "wired"} (backup: ${t.file}.mesh-backup)`);
+    changed++;
+  }
+  if (!dry && changed) {
+    console.log(`\nRestart the client(s) to pick up the change.`);
+    console.log(key
+      ? `Wired with your @${JSON.parse(readFileSync(CRED_FILE, "utf8")).handle} key — paid capability calls will settle in MESH.`
+      : `Wired keyless — browsing and mesh_signup work now. To make paid calls: mesh signup <handle> (or mesh login <key>), then rerun mesh init.`);
+  }
+}
+
 // Minimal, hand-rolled arg parsing: positional args first, then --flag value
 // pairs. No dependency earns its keep at this surface size.
 function parseArgs(argv) {
@@ -134,15 +221,24 @@ function parseArgs(argv) {
   const opts = {};
   for (let i = 0; i < argv.length; i++) {
     const a = argv[i];
-    if (a.startsWith("--")) { opts[a.slice(2)] = argv[i + 1]; i++; }
-    else positional.push(a);
+    if (a.startsWith("--")) {
+      // A flag followed by another flag (or by nothing) is a boolean, e.g.
+      // `init --dry-run --client cursor` — without this, --dry-run would
+      // swallow "--client" as its value and orphan "cursor".
+      const next = argv[i + 1];
+      if (next === undefined || next.startsWith("--")) opts[a.slice(2)] = true;
+      else { opts[a.slice(2)] = next; i++; }
+    } else positional.push(a);
   }
   return { positional, opts };
 }
 
 const HELP = `mesh — the MeshMarket CLI (${BASE})
 
+  mesh init [--dry-run] [--client <id>]    Wire the mesh into Claude Code /
+                                           Cursor / Claude Desktop (auto-detects).
   mesh signup <handle> [--ref <code>]     Join the mesh. Free, no card.
+  mesh login <agk_...>                     Re-attach an existing key.
   mesh whoami                              Your balance + recent activity.
   mesh discover [--category <name>]        List live capabilities and prices.
   mesh call <slug> --input '<json>'        Call a capability, pay per use.
@@ -158,7 +254,9 @@ async function main() {
   const [, , cmd, ...rest] = process.argv;
   const { positional, opts } = parseArgs(rest);
   switch (cmd) {
+    case "init": return cmdInit(opts);
     case "signup": return cmdSignup(positional[0], opts);
+    case "login": return cmdLogin(positional[0]);
     case "whoami": case "balance": return cmdWhoami();
     case "discover": case "ls": return cmdDiscover(opts);
     case "call": return cmdCall(positional[0], opts);

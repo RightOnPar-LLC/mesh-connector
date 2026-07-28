@@ -135,8 +135,30 @@ ok("README documents the published npx path (package.json's own name, not a hard
   (() => { try { return new RegExp("```[\\s\\S]*?npx " + JSON.parse(pkgRaw).name + "[\\s\\S]*?```").test(readme); } catch { return false; } })(),
   "the package is live on npm — the README should lead with npx, not git clone, for the reader who just wants to try it");
 ok("README's CLI commands match real subcommands the script implements",
-  ["signup", "discover", "call", "list", "whoami", "logout"].every((c) => new RegExp(`\\b${c}\\b`).test(readme)) && has("bin/mesh.mjs"),
+  (() => {
+    if (!has("bin/mesh.mjs")) return false;
+    const cli = read("bin/mesh.mjs");
+    // Both directions: every command the README advertises must be a real case
+    // in the script, and the README must mention each — a documented command
+    // that isn't implemented strands the first reader who tries it.
+    return ["init", "signup", "login", "discover", "call", "list", "whoami", "logout"]
+      .every((c) => new RegExp(`case "${c}"`).test(cli) && new RegExp(`\\b${c}\\b`).test(readme));
+  })(),
   "a documented command that isn't in the script strands the first reader who tries it");
+// SHIPPED 1.1.0: `init` writes into the user's OWN client configs. The two
+// promises the README makes about that are the two that make it safe to run:
+// merge-only behavior is guarded by the parse-skip (never rewrite a file we
+// couldn't parse), and every touched file gets a .mesh-backup sibling first.
+const cliSrc = has("bin/mesh.mjs") ? read("bin/mesh.mjs") : "";
+ok("init never rewrites a config it couldn't parse", /not valid JSON; skipped/.test(cliSrc),
+  "clobbering a user's half-edited config file is how a helpful installer becomes a horror story");
+ok("init backs up before writing", /\.mesh-backup/.test(cliSrc),
+  "the README promises a .mesh-backup sibling — the promise must stay true in code");
+// The npm alias keeps `npx meshmarket` working under the product's own name.
+ok("meshmarket alias package exists and its bin re-exports the real CLI",
+  has("alias/meshmarket/package.json") && has("alias/meshmarket/bin/meshmarket.mjs")
+    && /mesh-connector\/bin\/mesh\.mjs/.test(read("alias/meshmarket/bin/meshmarket.mjs")),
+  "npx meshmarket is published — if the shim drifts from the real CLI, the product-name path rots");
 
 // ── 7. RING-FENCE (LAW) ──────────────────────────────────────────────────────
 // This is a PUBLIC repo in the mainstream org. The adult vertical must never
