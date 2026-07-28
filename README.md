@@ -64,6 +64,10 @@ The button opens Cursor with the server pre-filled (keyless — browsing and
 `"headers": {"Authorization": "Bearer agk_…"}` to the `meshmarket` entry in
 `~/.cursor/mcp.json`, or just run `npx mesh-connector init` after signing up.
 
+**VS Code** — one click (VS Code 1.101+ speaks remote MCP natively):
+
+[![Install MeshMarket in VS Code](https://img.shields.io/badge/VS_Code-Install_MeshMarket-0098FF?logo=githubcopilot&logoColor=white)](https://vscode.dev/redirect/mcp/install?name=meshmarket&config=%7B%22type%22%3A%22http%22%2C%22url%22%3A%22https%3A%2F%2Fmarket.meshtool.ai%2Fmcp%22%7D)
+
 **Claude Desktop** — download, double-click, done:
 
 [**⬇ meshmarket.mcpb**](https://github.com/RightOnPar-LLC/mesh-connector/releases/latest/download/meshmarket.mcpb)

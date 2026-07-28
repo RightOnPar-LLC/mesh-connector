@@ -175,6 +175,16 @@ function clientTargets() {
       : join(home, ".config", "Claude", "claude_desktop_config.json");
   if (existsSync(desktopCfg))
     targets.push({ id: "claude-desktop", label: "Claude Desktop", file: desktopCfg, entry: (key) => ({ command: "npx", args: ["-y", "mcp-remote", MCP_URL(), ...(key ? ["--header", `Authorization: Bearer ${key}`] : [])] }) });
+  // VS Code (1.101+) speaks remote MCP natively, but its user-level mcp.json is
+  // its own dialect: top-level key "servers" (NOT "mcpServers") and a typed
+  // {"type":"http"} entry — one field wrong and VS Code shows nothing at all.
+  const codeUser = process.platform === "win32"
+    ? join(process.env.APPDATA || join(home, "AppData", "Roaming"), "Code", "User")
+    : process.platform === "darwin"
+      ? join(home, "Library", "Application Support", "Code", "User")
+      : join(home, ".config", "Code", "User");
+  if (existsSync(codeUser))
+    targets.push({ id: "vscode", label: "VS Code", file: join(codeUser, "mcp.json"), topKey: "servers", entry: (key) => ({ type: "http", url: MCP_URL(), ...(key ? { headers: { Authorization: `Bearer ${key}` } } : {}) }) });
   return targets;
 }
 
@@ -185,7 +195,7 @@ function cmdInit(opts) {
   if (opts.client) targets = targets.filter((t) => t.id === opts.client);
   if (!targets.length) {
     console.log(opts.client
-      ? `No config found for "${opts.client}". Valid clients: claude-code, cursor, claude-desktop (must be installed).`
+      ? `No config found for "${opts.client}". Valid clients: claude-code, cursor, claude-desktop, vscode (must be installed).`
       : "No MCP clients detected (looked for Claude Code, Cursor, Claude Desktop). Wire one manually: https://github.com/RightOnPar-LLC/mesh-connector#quick-start");
     process.exit(opts.client ? 1 : 0);
   }
@@ -196,12 +206,13 @@ function cmdInit(opts) {
       try { cfg = JSON.parse(readFileSync(t.file, "utf8")); }
       catch { console.error(`  ✗ ${t.label} — ${t.file} is not valid JSON; skipped (fix it and rerun, nothing was touched)`); continue; }
     }
+    const topKey = t.topKey || "mcpServers"; // VS Code's dialect uses "servers"
     const entry = t.entry(key);
-    const current = (cfg.mcpServers || {}).meshmarket;
+    const current = (cfg[topKey] || {}).meshmarket;
     if (JSON.stringify(current) === JSON.stringify(entry)) { console.log(`  = ${t.label} — already wired (${t.file})`); continue; }
-    if (dry) { console.log(`  → ${t.label} — would ${current ? "update" : "add"} mcpServers.meshmarket in ${t.file}:\n      ${JSON.stringify(entry)}`); continue; }
+    if (dry) { console.log(`  → ${t.label} — would ${current ? "update" : "add"} ${topKey}.meshmarket in ${t.file}:\n      ${JSON.stringify(entry)}`); continue; }
     if (existsSync(t.file)) writeFileSync(t.file + ".mesh-backup", readFileSync(t.file));
-    cfg.mcpServers = { ...(cfg.mcpServers || {}), meshmarket: entry };
+    cfg[topKey] = { ...(cfg[topKey] || {}), meshmarket: entry };
     writeFileSync(t.file, JSON.stringify(cfg, null, 2));
     console.log(`  ✓ ${t.label} — ${current ? "updated" : "wired"} (backup: ${t.file}.mesh-backup)`);
     changed++;

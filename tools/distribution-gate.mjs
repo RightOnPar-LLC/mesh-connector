@@ -174,6 +174,21 @@ ok("README's Cursor deeplink decodes to the real MCP endpoint",
     catch { return false; }
   })(),
   "a deeplink whose embedded config drifts from the endpoint wires every clicker to a dead server");
+ok("README's VS Code deeplink decodes to the real MCP endpoint, in VS Code's own dialect",
+  (() => {
+    // NOTE the char class includes "." — hostnames sit UNENCODED inside the
+    // encoded config, and the first cut of this check truncated the match at
+    // "market", failing green content. A check that cries wolf teaches everyone
+    // to ignore the gate, which is worse than no check.
+    const m = readme.match(/vscode\.dev\/redirect\/mcp\/install\?name=meshmarket&config=([A-Za-z0-9%._~-]+)/);
+    if (!m) return false;
+    try {
+      const c = JSON.parse(decodeURIComponent(m[1]));
+      // VS Code needs the typed entry — {"url":...} alone (Cursor's shape) renders as nothing.
+      return c.type === "http" && c.url === "https://market.meshtool.ai/mcp";
+    } catch { return false; }
+  })(),
+  "VS Code silently ignores a config in the wrong dialect — the button would 'work' and install nothing");
 let mcpb = null;
 ok("mcpb/manifest.json is valid JSON with a semver version",
   (() => { try { mcpb = JSON.parse(read("mcpb/manifest.json")); return /^\d+\.\d+\.\d+$/.test(mcpb.version); } catch { return false; } })());
