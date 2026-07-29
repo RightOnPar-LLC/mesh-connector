@@ -6,7 +6,13 @@
 # stdout. No npm install, no lockfile, no dependencies to scan or rot.
 FROM node:22-alpine
 WORKDIR /app
+# PATH-AGNOSTIC ON PURPOSE (2026-07-29): Glama's build form supplies its own
+# CMD arguments, and a runner that starts `mcp-proxy -- node <path>` with a
+# path that doesn't exist inside the image doesn't fail loudly — node exits and
+# the proxy waits forever (cost us a 12-minute hang). The file is present at
+# BOTH the repo-relative path and the workdir root, so either CMD works.
 COPY mcpb/server/index.js ./index.js
+COPY mcpb/server/index.js ./mcpb/server/index.js
 # Optional: pass MESHMARKET_AGENT_KEY for paid calls; keyless works for
 # browsing and mesh_signup, same as every other door into the mesh.
 ENV MESH_MCP_URL=https://market.meshtool.ai/mcp
