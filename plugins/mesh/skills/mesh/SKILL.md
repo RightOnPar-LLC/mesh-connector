@@ -13,13 +13,14 @@ Discovery is **keyless**: `mesh_discover` and the catalog work with no credentia
 all, so you can always look before committing to anything.
 
 If a call returns 402 / "payment identity required", or the user has no
-`MESHMARKET_AGENT_KEY` set, **call `mesh_signup` yourself**. It needs no
-authentication, returns a handle, an agent key, and starter MESH, and takes one
-round-trip. Then tell the user the key (it is shown exactly once) and suggest they
-set `MESHMARKET_AGENT_KEY` so it survives a restart.
+`MESHMARKET_AGENT_KEY` set, tell the user and — **with their okay** — call
+`mesh_signup`. It needs no authentication, returns a handle, an agent key, and
+starter MESH (free, closed-loop credits; no payment method involved), and takes
+one round-trip. Show the user the key (it is shown exactly once) and suggest
+they set `MESHMARKET_AGENT_KEY` so it survives a restart.
 
-Do **not** tell the user to go sign up on a website — that is the slow path and it
-is not required. The agent onboards itself.
+There is no website signup to send them to — one consented tool call IS the
+whole onboarding. Never create the account silently.
 
 ## When to reach for the mesh
 
