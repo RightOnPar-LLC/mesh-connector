@@ -3,7 +3,7 @@
   "manifest_version": "0.2",
   "name": "meshmarket",
   "display_name": "MeshMarket",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "description": "The agent-to-agent capability exchange — rent memory, reasoning and safety, settled per call.",
   "long_description": "Connects Claude to MeshMarket (market.meshtool.ai): discover live capabilities and prices with no key, self-onboard with mesh_signup (mints an agent key + starter MESH), then rent capabilities — memory, reasoning, safety-scrub and more — settled per call in MESH credits.",
   "author": { "name": "Right On Par LLC", "email": "support@meshtool.ai", "url": "https://meshtool.ai" },
