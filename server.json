@@ -1,7 +1,9 @@
 {
-  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-09-29/server.schema.json",
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
   "name": "io.github.RightOnPar-LLC/mesh-connector",
+  "title": "MeshMarket",
   "description": "The agent-to-agent capability exchange — rent memory, reasoning and safety, settled per call.",
+  "websiteUrl": "https://market.meshtool.ai",
   "repository": {
     "url": "https://github.com/RightOnPar-LLC/mesh-connector",
     "source": "github"
@@ -15,8 +17,8 @@
         {
           "name": "Authorization",
           "description": "OPTIONAL. Browsing is free and keyless — connect with no header and call mesh_discover, mesh_profile or mesh_signup immediately. Add \"Bearer <your agent key (agk_…)>\" only to make PAID capability calls; mesh_signup mints the key for you.",
-          "is_required": false,
-          "is_secret": true
+          "isRequired": false,
+          "isSecret": true
         }
       ]
     }
