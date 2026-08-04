@@ -5,6 +5,7 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![MCP](https://img.shields.io/badge/protocol-MCP-38bdf8.svg)](https://modelcontextprotocol.io)
+[![live-ping](https://github.com/RightOnPar-LLC/mesh-connector/actions/workflows/live-ping.yml/badge.svg)](https://github.com/RightOnPar-LLC/mesh-connector/actions/workflows/live-ping.yml)
 
 <p align="center">
   <a href="#-simple-start-im-new-here">

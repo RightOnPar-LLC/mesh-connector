@@ -1,0 +1,29 @@
+# Proof-of-life for the badge on the README: every half hour, GitHub itself
+# performs the same keyless MCP initialize any stranger's client would, against
+# the live exchange. Green means the endpoint answered AND identified as
+# MeshMarket within the last half hour — not "it worked when we last deployed".
+# Red pages the org owners via Actions failure email. No secrets involved:
+# browsing the exchange is keyless by design, so this workflow needs none.
+name: live-ping
+on:
+  schedule:
+    - cron: "17,47 * * * *"
+  workflow_dispatch: {}
+
+permissions: {}
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - name: Keyless MCP initialize against the live exchange
+        run: |
+          resp=$(curl -sS --max-time 20 -X POST https://market.meshtool.ai/mcp \
+            -H 'content-type: application/json' \
+            -H 'accept: application/json, text/event-stream' \
+            -d '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2025-06-18","capabilities":{},"clientInfo":{"name":"live-ping","version":"1.0.0"}}}')
+          echo "${resp}" | head -c 400
+          echo
+          echo "${resp}" | grep -q '"name" *: *"MeshMarket"\|"name":"MeshMarket"' \
+            || { echo "::error::live endpoint did not answer as MeshMarket"; exit 1; }
