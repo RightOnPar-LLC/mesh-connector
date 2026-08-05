@@ -289,18 +289,18 @@ async function mintNode(opts) {
     }
     if (r.status === 409 && !explicit) continue;      // handle collision — try another
     if (r.status === 409) {
-      console.log(`  · @${handle} is taken. If it's yours:  npx meshmarket@latest init --adopt`);
+      console.log(`  · @${handle} is taken. If it's yours:  npx -y meshmarket@latest init --adopt`);
       return { key: null, handle: null };
     }
     if (r.status === 429) {
       console.log("  · Signup limit reached for this network today. Wiring keyless — browsing and search work now.");
-      console.log("    Add your key later with:  npx meshmarket@latest init --adopt");
+      console.log("    Add your key later with:  npx -y meshmarket@latest init --adopt");
       return { key: null, handle: null };
     }
     console.log(`  · Could not create a node (${r.body?.error || "HTTP " + r.status}). Wiring keyless; add a key later with --adopt.`);
     return { key: null, handle: null };
   }
-  console.log("  · Could not find a free handle. Pick one:  npx meshmarket@latest init --handle <name>");
+  console.log("  · Could not find a free handle. Pick one:  npx -y meshmarket@latest init --handle <name>");
   return { key: null, handle: null };
 }
 
@@ -325,7 +325,7 @@ async function cmdInit(opts) {
   else if (!key && "adopt" in opts && !dry) { key = await readSecretFromStdin("Paste your agent key: "); handle = key ? await adoptKey(key) : null; }
   else if (!key && !dry && !("keyless" in opts)) {
     console.log("No saved key found — minting you a node (free, no card, no form).");
-    console.log("Already have one? Ctrl-C, then:  npx meshmarket@latest init --adopt");
+    console.log("Already have one? Ctrl-C, then:  npx -y meshmarket@latest init --adopt");
     ({ key, handle } = await mintNode(opts));
   }
 
@@ -387,9 +387,9 @@ async function cmdInit(opts) {
       console.log(`Restart the client you use, then ask it: "discover capabilities on MeshMarket".`);
     } else {
       console.log(`\nDone. ${changed} client${changed > 1 ? "s" : ""} wired keyless — browsing and search work now.`);
-      console.log(`Restart the client you use. To make paid calls, add a key:  npx meshmarket@latest init --adopt`);
+      console.log(`Restart the client you use. To make paid calls, add a key:  npx -y meshmarket@latest init --adopt`);
     }
-    console.log(`Check it took:  npx meshmarket@latest init --dry-run   (should say "already wired")`);
+    console.log(`Check it took:  npx -y meshmarket@latest init --dry-run   (should say "already wired")`);
   }
 }
 
@@ -415,7 +415,7 @@ function parseArgs(argv) {
 const HELP = `mesh — the MeshMarket CLI (${BASE})
 
   ONE COMMAND, START TO FINISH:
-    npx meshmarket@latest init
+    npx -y meshmarket@latest init
       Creates your node if you don't have one, saves your key, and wires every
       MCP client on this machine (Claude Code, Claude Desktop, Cursor, VS Code,
       VS Code Insiders, Windsurf, Gemini CLI). Merge-only; backs up anything it
