@@ -12,19 +12,48 @@
 // mirrors the API's own "shown once" contract, not a CLI-specific choice.
 import { existsSync, mkdirSync, readFileSync, writeFileSync, chmodSync, unlinkSync } from "node:fs";
 import { homedir } from "node:os";
-import { join } from "node:path";
+import { join, dirname } from "node:path";
+import { createInterface } from "node:readline";
 
 const BASE = process.env.MESH_API_BASE || "https://market.meshtool.ai";
 const CRED_DIR = join(homedir(), ".mesh");
 const CRED_FILE = join(CRED_DIR, "credentials");
 
+// A bearer token printed to stdout does not stay on the screen: it lands in
+// terminal scrollback, tmux buffers, CI logs, screen shares — and, because the
+// whole premise here is that AGENTS run this command, straight into a model's
+// context window and whatever chat transcript that agent is writing. Show
+// enough to recognise a key, never enough to spend it.
+const maskKey = (k) => (typeof k === "string" && k.length > 16)
+  ? k.slice(0, 12) + "…" + k.slice(-4) : "agk_…";
+// Belt AND braces: mask by value wherever a key could ride inside a larger
+// string (a rendered config entry, an argv array), so adding a new printout
+// later cannot silently reintroduce the leak.
+const redactKey = (text, k) => (typeof text === "string" && typeof k === "string" && k.length > 16)
+  ? text.split(k).join(maskKey(k)) : text;
+
 function loadKey() {
   try { return JSON.parse(readFileSync(CRED_FILE, "utf8")).key || null; } catch { return null; }
 }
+function credHandle() {
+  try { return JSON.parse(readFileSync(CRED_FILE, "utf8")).handle || null; } catch { return null; }
+}
 function saveKey(handle, key) {
-  mkdirSync(CRED_DIR, { recursive: true });
-  writeFileSync(CRED_FILE, JSON.stringify({ handle, key }, null, 2));
+  mkdirSync(CRED_DIR, { recursive: true, mode: 0o700 });
+  // Both lines are required and neither is redundant: `mode` is honored only
+  // when the file is CREATED, so a rewrite of an existing 0644 credentials file
+  // ignores it and only the chmod tightens things. Writing first and chmodding
+  // after would leave the key world-readable in between.
+  writeFileSync(CRED_FILE, JSON.stringify({ handle, key }, null, 2), { mode: 0o600 });
   try { chmodSync(CRED_FILE, 0o600); } catch { /* no-op on filesystems that don't support POSIX modes */ }
+}
+
+// Keys arrive over stdin, never argv — an argument lives in shell history forever.
+function readSecretFromStdin(promptText) {
+  return new Promise((resolve) => {
+    const rl = createInterface({ input: process.stdin, output: process.stderr });
+    rl.question(promptText, (answer) => { rl.close(); resolve((answer || "").trim()); });
+  });
 }
 
 async function api(method, path, { key, body } = {}) {
@@ -68,9 +97,24 @@ async function cmdSignup(handle, opts) {
   if (!report(r)) process.exit(1);
   saveKey(handle, r.body.api_key);
   console.log(`Signed up as @${handle}.`);
-  console.log(`Key saved to ${CRED_FILE} — SAVE A COPY ELSEWHERE TOO, it is shown once and this file can be deleted:`);
-  console.log(`  ${r.body.api_key}`);
+  console.log(`Key saved to ${CRED_FILE} (owner-read-only): ${maskKey(r.body.api_key)}`);
+  console.log(`Back it up now — the exchange shows it once and never again:  mesh key --show`);
   console.log(`Starter balance: ${r.body.credits ?? "?"} MESH`);
+}
+
+// ── mesh key — reveal or mask the saved key ─────────────────────────────────
+// `--show` is gated on a real TTY: if stdout is a pipe, a file, or an agent
+// harness capturing output, printing the key would put it somewhere permanent
+// that the person running the command cannot see and did not choose.
+function cmdKey(opts) {
+  const k = loadKey(); need(k);
+  if (!("show" in opts)) { console.log(maskKey(k)); return; }
+  if (!process.stdout.isTTY || process.env.CI) {
+    console.error("Refusing to print a key to a non-TTY — that is a pipe, a file, or an agent transcript.");
+    console.error(`Read it yourself: ${CRED_FILE}`);
+    process.exit(1);
+  }
+  console.log(k);
 }
 
 async function cmdWhoami() {
@@ -137,11 +181,14 @@ function cmdLogout() {
 // The key is verified against the live API BEFORE saving, so a typo'd key
 // fails loudly here instead of as a confusing 401 three commands later.
 async function cmdLogin(key) {
-  if (!key) { console.error("usage: mesh login <agk_...>   (the key shown once at signup)"); process.exit(1); }
+  const fromArgv = !!key;
+  if (!key) key = await readSecretFromStdin("Paste your agent key (it will not be echoed to history): ");
+  if (!key) { console.error("usage: mesh login   (then paste the key when asked)"); process.exit(1); }
   const r = await api("GET", "/api/account", { key });
   if (!r.ok) { report(r); process.exit(1); }
   saveKey(r.body.handle, key);
   console.log(`Signed in as @${r.body.handle} — ${r.body.credits} MESH. Key saved to ${CRED_FILE}.`);
+  if (fromArgv) console.log("That key is now in your shell history. Clear that line, or rotate the key at market.meshtool.ai/desk.");
 }
 
 // ── mesh init — detect MCP clients and wire the mesh into them ───────────────
@@ -159,12 +206,17 @@ async function cmdLogin(key) {
 //     rather than rewritten).
 const MCP_URL = () => BASE + "/mcp";
 
+// Detection is by DIRECTORY, not by config FILE. A fresh Claude Desktop install
+// has %APPDATA%\Claude\ but no claude_desktop_config.json — that file only
+// appears once you open Developer settings. Gating on the file meant the people
+// most in need of this command ("No MCP clients detected") were exactly the ones
+// who had never hand-edited a config in their life.
 function clientTargets() {
   const home = homedir();
   const targets = [];
   // Claude Code keeps user-scope MCP servers at the top level of ~/.claude.json.
   const claudeJson = join(home, ".claude.json");
-  if (existsSync(claudeJson))
+  if (existsSync(claudeJson) || existsSync(join(home, ".claude")))
     targets.push({ id: "claude-code", label: "Claude Code", file: claudeJson, entry: (key) => ({ type: "http", url: MCP_URL(), ...(key ? { headers: { Authorization: `Bearer ${key}` } } : {}) }) });
   // Cursor reads ~/.cursor/mcp.json globally (same shape as its per-project .cursor/mcp.json).
   const cursorDir = join(home, ".cursor");
@@ -177,8 +229,8 @@ function clientTargets() {
     : process.platform === "darwin"
       ? join(home, "Library", "Application Support", "Claude", "claude_desktop_config.json")
       : join(home, ".config", "Claude", "claude_desktop_config.json");
-  if (existsSync(desktopCfg))
-    targets.push({ id: "claude-desktop", label: "Claude Desktop", file: desktopCfg, entry: (key) => ({ command: "npx", args: ["-y", "mcp-remote", MCP_URL(), ...(key ? ["--header", `Authorization: Bearer ${key}`] : [])] }) });
+  if (existsSync(dirname(desktopCfg)))
+    targets.push({ id: "claude-desktop", label: "Claude Desktop", file: desktopCfg, argvKey: true, entry: (key) => ({ command: "npx", args: ["-y", "mcp-remote", MCP_URL(), ...(key ? ["--header", `Authorization: Bearer ${key}`] : [])] }) });
   // VS Code (1.101+) speaks remote MCP natively, but its user-level mcp.json is
   // its own dialect: top-level key "servers" (NOT "mcpServers") and a typed
   // {"type":"http"} entry — one field wrong and VS Code shows nothing at all.
@@ -189,19 +241,114 @@ function clientTargets() {
       : join(home, ".config", "Code", "User");
   if (existsSync(codeUser))
     targets.push({ id: "vscode", label: "VS Code", file: join(codeUser, "mcp.json"), topKey: "servers", entry: (key) => ({ type: "http", url: MCP_URL(), ...(key ? { headers: { Authorization: `Bearer ${key}` } } : {}) }) });
+  // VS Code Insiders — same dialect, different directory.
+  const insidersUser = process.platform === "win32"
+    ? join(process.env.APPDATA || join(home, "AppData", "Roaming"), "Code - Insiders", "User")
+    : process.platform === "darwin"
+      ? join(home, "Library", "Application Support", "Code - Insiders", "User")
+      : join(home, ".config", "Code - Insiders", "User");
+  if (existsSync(insidersUser))
+    targets.push({ id: "vscode-insiders", label: "VS Code Insiders", file: join(insidersUser, "mcp.json"), topKey: "servers", entry: (key) => ({ type: "http", url: MCP_URL(), ...(key ? { headers: { Authorization: `Bearer ${key}` } } : {}) }) });
+  // The next three carry per-client config-key traps that are already researched
+  // and written down in meshmarket/src/install-matrix.js — copied verbatim from
+  // there rather than re-derived, so the two surfaces cannot drift apart.
+  // Windsurf — TRAP: the key is `serverUrl`, not `url`.
+  const windsurfDir = join(home, ".codeium", "windsurf");
+  if (existsSync(windsurfDir))
+    targets.push({ id: "windsurf", label: "Windsurf", file: join(windsurfDir, "mcp_config.json"), entry: (key) => ({ serverUrl: MCP_URL(), ...(key ? { headers: { Authorization: `Bearer ${key}` } } : {}) }) });
+  // Gemini CLI — TRAP: the key is `httpUrl`, not `url`.
+  const geminiDir = join(home, ".gemini");
+  if (existsSync(geminiDir))
+    targets.push({ id: "gemini-cli", label: "Gemini CLI", file: join(geminiDir, "settings.json"), entry: (key) => ({ httpUrl: MCP_URL(), ...(key ? { headers: { Authorization: `Bearer ${key}` } } : {}) }) });
   return targets;
 }
 
-function cmdInit(opts) {
-  const key = loadKey();
+// ── minting a node from inside init ─────────────────────────────────────────
+// Two 32-word lists, so a generated handle costs no network round-trip.
+const ADJ = ["amber","brisk","calm","clever","copper","crisp","dawn","deft","eager","fleet","gentle","glad","hollow","iron","jade","keen","lucid","mellow","nimble","north","olive","patient","quick","quiet","rapid","russet","sage","silent","slate","swift","tidal","vivid"];
+const NOUN = ["anchor","badger","beacon","cedar","cinder","comet","crane","delta","ember","falcon","harbor","heron","ridge","kestrel","lantern","meadow","mesa","orbit","otter","pier","quarry","raven","reef","summit","tern","thicket","tide","vector","warden","willow","wren","yard"];
+const slugify = (s) => String(s || "").trim().toLowerCase().replace(/[^a-z0-9-]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 32);
+function generatedHandle() {
+  const pick = (a) => a[Math.floor(Math.random() * a.length)];
+  const hex = Math.floor(Math.random() * 0xffff).toString(16).padStart(4, "0");
+  return `${pick(ADJ)}-${pick(NOUN)}-${hex}`;
+}
+
+// Returns {key, handle}. key may be null — a rate-limited signup still leaves
+// the user with a working keyless install, which is better than an abort.
+async function mintNode(opts) {
+  const explicit = opts.handle ? slugify(opts.handle) : null;
+  for (let attempt = 0; attempt < 5; attempt++) {
+    const handle = explicit || generatedHandle();
+    const r = await api("POST", "/api/accounts", { body: { handle, referred_by: opts.ref || undefined } });
+    if (r.ok) {
+      saveKey(handle, r.body.api_key);
+      console.log(`  ✓ node @${handle} created — ${r.body.credits ?? "?"} MESH to start`);
+      console.log(`    key saved to ${CRED_FILE} (owner-read-only): ${maskKey(r.body.api_key)}`);
+      return { key: r.body.api_key, handle };
+    }
+    if (r.status === 409 && !explicit) continue;      // handle collision — try another
+    if (r.status === 409) {
+      console.log(`  · @${handle} is taken. If it's yours:  npx meshmarket@latest init --adopt`);
+      return { key: null, handle: null };
+    }
+    if (r.status === 429) {
+      console.log("  · Signup limit reached for this network today. Wiring keyless — browsing and search work now.");
+      console.log("    Add your key later with:  npx meshmarket@latest init --adopt");
+      return { key: null, handle: null };
+    }
+    console.log(`  · Could not create a node (${r.body?.error || "HTTP " + r.status}). Wiring keyless; add a key later with --adopt.`);
+    return { key: null, handle: null };
+  }
+  console.log("  · Could not find a free handle. Pick one:  npx meshmarket@latest init --handle <name>");
+  return { key: null, handle: null };
+}
+
+async function adoptKey(key) {
+  const r = await api("GET", "/api/account", { key });
+  if (!r.ok) { console.error("That key was rejected by the exchange."); report(r); process.exit(1); }
+  saveKey(r.body.handle, key);
+  console.log(`  ✓ adopted @${r.body.handle} — ${r.body.credits} MESH`);
+  return r.body.handle;
+}
+
+async function cmdInit(opts) {
   const dry = "dry-run" in opts;
+  let key = loadKey();
+  let handle = key ? credHandle() : null;
+
+  // A saved key wins. Then MESH_AGENT_KEY from the environment (never argv —
+  // an argument lives in shell history forever). Then --adopt, which reads an
+  // existing key over stdin. Only then do we mint, and NEVER on a dry run: a
+  // rehearsal must not burn one of the five signups this network gets per day.
+  if (!key && process.env.MESH_AGENT_KEY) { key = process.env.MESH_AGENT_KEY.trim(); handle = await adoptKey(key); }
+  else if (!key && "adopt" in opts && !dry) { key = await readSecretFromStdin("Paste your agent key: "); handle = key ? await adoptKey(key) : null; }
+  else if (!key && !dry && !("keyless" in opts)) {
+    console.log("No saved key found — minting you a node (free, no card, no form).");
+    console.log("Already have one? Ctrl-C, then:  npx meshmarket@latest init --adopt");
+    ({ key, handle } = await mintNode(opts));
+  }
+
   let targets = clientTargets();
   if (opts.client) targets = targets.filter((t) => t.id === opts.client);
   if (!targets.length) {
-    console.log(opts.client
-      ? `No config found for "${opts.client}". Valid clients: claude-code, cursor, claude-desktop, vscode (must be installed).`
-      : "No MCP clients detected (looked for Claude Code, Cursor, Claude Desktop). Wire one manually: https://github.com/RightOnPar-LLC/mesh-connector#quick-start");
-    process.exit(opts.client ? 1 : 0);
+    if (opts.client) {
+      console.log(`No config found for "${opts.client}". Valid clients: claude-code, cursor, claude-desktop, vscode, vscode-insiders, windsurf, gemini-cli.`);
+      process.exit(1);
+    }
+    // Never dead-end. The account exists now; hand over everything needed to
+    // finish by hand rather than pointing at a docs page.
+    console.log("\nWired: nothing detected on this machine yet — here is everything you need, ready to paste.\n");
+    if (handle) console.log(`  Your node:  @${handle}   key saved to ${CRED_FILE}\n`);
+    console.log(`  Claude Code           claude mcp add --transport http meshmarket ${MCP_URL()}`);
+    console.log(`  Claude Desktop        Settings → Connectors → Add custom connector → paste:`);
+    console.log(`                        ${MCP_URL()}`);
+    console.log(`  ChatGPT / Grok        connector settings → paste the same URL`);
+    console.log(`  Anything else         ${BASE}/install\n`);
+    console.log("  Those wire a keyless connection: browsing and search work immediately, paid");
+    console.log("  calls do not. Install one of those apps and rerun this command to wire it");
+    console.log("  with your key. Reveal the key for a manual paste with:  mesh key --show");
+    process.exit(0);   // the account got created; that is a success
   }
   let changed = 0;
   for (const t of targets) {
@@ -214,18 +361,35 @@ function cmdInit(opts) {
     const entry = t.entry(key);
     const current = (cfg[topKey] || {}).meshmarket;
     if (JSON.stringify(current) === JSON.stringify(entry)) { console.log(`  = ${t.label} — already wired (${t.file})`); continue; }
-    if (dry) { console.log(`  → ${t.label} — would ${current ? "update" : "add"} ${topKey}.meshmarket in ${t.file}:\n      ${JSON.stringify(entry)}`); continue; }
-    if (existsSync(t.file)) writeFileSync(t.file + ".mesh-backup", readFileSync(t.file));
+    // A rehearsal prints the shape, never the secret: this line is the one an
+    // agent is most likely to run and paste straight into a transcript.
+    if (dry) { console.log(`  → ${t.label} — would ${current ? "update" : "add"} ${topKey}.meshmarket in ${t.file}:\n      ${redactKey(JSON.stringify(entry), key)}`); continue; }
+    // Only claim a backup we actually took — a brand-new config file has nothing
+    // to back up, and naming a path that doesn't exist is the same class of lie
+    // as a copy button that says "Copied ✓" without copying.
+    const backedUp = existsSync(t.file);
+    if (backedUp) writeFileSync(t.file + ".mesh-backup", readFileSync(t.file));
+    mkdirSync(dirname(t.file), { recursive: true });
     cfg[topKey] = { ...(cfg[topKey] || {}), meshmarket: entry };
     writeFileSync(t.file, JSON.stringify(cfg, null, 2));
-    console.log(`  ✓ ${t.label} — ${current ? "updated" : "wired"} (backup: ${t.file}.mesh-backup)`);
+    // These files now hold a bearer token, and so may the backup we just took.
+    if (key) {
+      try { chmodSync(t.file, 0o600); } catch { /* filesystem without POSIX modes */ }
+      try { if (existsSync(t.file + ".mesh-backup")) chmodSync(t.file + ".mesh-backup", 0o600); } catch { /* ditto */ }
+    }
+    console.log(`  ✓ ${t.label} — ${current ? "updated" : "wired"}${backedUp ? ` (backup: ${t.file}.mesh-backup)` : ` (new file: ${t.file})`}`);
+    if (key && t.argvKey) console.log(`    note: Claude Desktop's bridge passes the key on a command line, visible to other users of this machine.\n    On a shared machine prefer Settings → Connectors → Add custom connector (keyless).`);
     changed++;
   }
   if (!dry && changed) {
-    console.log(`\nRestart the client(s) to pick up the change.`);
-    console.log(key
-      ? `Wired with your @${JSON.parse(readFileSync(CRED_FILE, "utf8")).handle} key — paid capability calls will settle in MESH.`
-      : `Wired keyless — browsing and mesh_signup work now. To make paid calls: mesh signup <handle> (or mesh login <key>), then rerun mesh init.`);
+    if (key) {
+      console.log(`\nDone. ${changed} client${changed > 1 ? "s" : ""} wired with @${handle || credHandle()}'s key — paid calls settle in MESH.`);
+      console.log(`Restart the client you use, then ask it: "discover capabilities on MeshMarket".`);
+    } else {
+      console.log(`\nDone. ${changed} client${changed > 1 ? "s" : ""} wired keyless — browsing and search work now.`);
+      console.log(`Restart the client you use. To make paid calls, add a key:  npx meshmarket@latest init --adopt`);
+    }
+    console.log(`Check it took:  npx meshmarket@latest init --dry-run   (should say "already wired")`);
   }
 }
 
@@ -250,10 +414,22 @@ function parseArgs(argv) {
 
 const HELP = `mesh — the MeshMarket CLI (${BASE})
 
-  mesh init [--dry-run] [--client <id>]    Wire the mesh into Claude Code /
-                                           Cursor / Claude Desktop (auto-detects).
+  ONE COMMAND, START TO FINISH:
+    npx meshmarket@latest init
+      Creates your node if you don't have one, saves your key, and wires every
+      MCP client on this machine (Claude Code, Claude Desktop, Cursor, VS Code,
+      VS Code Insiders, Windsurf, Gemini CLI). Merge-only; backs up anything it
+      touches. Free, no card, no form.
+
+    --dry-run      Show what it would change. Touches nothing, mints nothing.
+    --adopt        Already have a key? Paste it when asked (never via argv).
+    --handle <n>   Pick your node name instead of getting a generated one.
+    --keyless      Wire browse-only; don't create an account.
+    --client <id>  Wire just one.
+
   mesh signup <handle> [--ref <code>]     Join the mesh. Free, no card.
-  mesh login <agk_...>                     Re-attach an existing key.
+  mesh key [--show]                        Show your key masked (--show needs a TTY).
+  mesh login                               Re-attach an existing key (paste when asked).
   mesh whoami                              Your balance + recent activity.
   mesh discover [--category <name>]        List live capabilities and prices.
   mesh call <slug> --input '<json>'        Call a capability, pay per use.
@@ -272,6 +448,7 @@ async function main() {
     case "init": return cmdInit(opts);
     case "signup": return cmdSignup(positional[0], opts);
     case "login": return cmdLogin(positional[0]);
+    case "key": return cmdKey(opts);
     case "whoami": case "balance": return cmdWhoami();
     case "discover": case "ls": return cmdDiscover(opts);
     case "call": return cmdCall(positional[0], opts);
