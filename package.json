@@ -1,6 +1,6 @@
 {
   "name": "mesh-connector",
-  "version": "1.2.0",
+  "version": "1.3.0",
   "description": "The MeshMarket CLI — sign up, discover, call, and list capabilities on the agent-to-agent exchange from the command line. Zero dependencies.",
   "license": "MIT",
   "type": "module",

@@ -103,10 +103,14 @@ async function cmdCall(slug, opts) {
 }
 
 async function cmdList(opts) {
-  if (!opts.name) { console.error("usage: mesh list --name <name> --price <n> [--kind tool|feed|workflow] [--endpoint <url>] [--steps '<json array>'] [--description <text>]"); process.exit(1); }
+  if (!opts.name) { console.error("usage: mesh list --name <name> --price <n> [--craft <text> | --craft-file <path> | --endpoint <url>] [--kind tool|feed|workflow] [--steps '<json array>'] [--description <text>]\n\n  --craft: a KNOWLEDGE TOOL — your expertise written as instructions; the mesh's\n  model runs it when rented. No endpoint, no code. Min 2 MESH. Stays private."); process.exit(1); }
   const key = loadKey();
   need(key);
   const body = { name: opts.name, kind: opts.kind || "tool", price: Number(opts.price) || 1, description: opts.description || "", category: opts.category || "general" };
+  // Knowledge tools (2026-08-04): craft rides INSTEAD of endpoint — the server
+  // enforces the exclusivity and the 2-MESH model-cost floor.
+  if (opts["craft-file"]) { try { body.craft = readFileSync(opts["craft-file"], "utf8"); } catch { console.error(`could not read --craft-file ${opts["craft-file"]}`); process.exit(1); } }
+  else if (opts.craft) body.craft = opts.craft;
   if (opts.endpoint) body.endpoint = opts.endpoint;
   if (opts.steps) { try { body.steps = JSON.parse(opts.steps); } catch { console.error("--steps must be a JSON array"); process.exit(1); } }
   const r = await api("POST", "/api/capabilities", { key, body });

@@ -3,20 +3,34 @@
   "manifest_version": "0.2",
   "name": "meshmarket",
   "display_name": "MeshMarket",
-  "version": "1.2.0",
+  "version": "1.3.0",
   "description": "The agent-to-agent capability exchange — rent memory, reasoning and safety, settled per call.",
-  "long_description": "Connects Claude to MeshMarket (market.meshtool.ai): discover live capabilities and prices with no key, self-onboard with mesh_signup (mints an agent key + starter MESH), then rent capabilities — memory, reasoning, safety-scrub and more — settled per call in MESH credits.",
-  "author": { "name": "Right On Par LLC", "email": "support@meshtool.ai", "url": "https://meshtool.ai" },
+  "long_description": "Connects Claude to MeshMarket (market.meshtool.ai): discover live capabilities and prices with no key, self-onboard with mesh_signup (mints an agent key + starter MESH), then rent capabilities — memory, reasoning, safety-scrub and more — settled per call in MESH credits — or publish your own and earn: mesh_publish lists an https endpoint OR your craft (expertise written as instructions, run on the house model; no code needed, kept private).",
+  "author": {
+    "name": "Right On Par LLC",
+    "email": "support@meshtool.ai",
+    "url": "https://meshtool.ai"
+  },
   "homepage": "https://market.meshtool.ai",
   "documentation": "https://github.com/RightOnPar-LLC/mesh-connector",
   "license": "MIT",
-  "keywords": ["mcp", "agent", "marketplace", "memory", "mesh"],
+  "keywords": [
+    "mcp",
+    "agent",
+    "marketplace",
+    "memory",
+    "mesh",
+    "earn",
+    "craft"
+  ],
   "server": {
     "type": "node",
     "entry_point": "server/index.js",
     "mcp_config": {
       "command": "node",
-      "args": ["${__dirname}/server/index.js"],
+      "args": [
+        "${__dirname}/server/index.js"
+      ],
       "env": {
         "MESHMARKET_AGENT_KEY": "${user_config.agent_key}"
       }
@@ -32,7 +46,13 @@
     }
   },
   "compatibility": {
-    "platforms": ["darwin", "win32", "linux"],
-    "runtimes": { "node": ">=18" }
+    "platforms": [
+      "darwin",
+      "win32",
+      "linux"
+    ],
+    "runtimes": {
+      "node": ">=18"
+    }
   }
 }
