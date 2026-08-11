@@ -67,7 +67,7 @@ Then type `/mesh` to see the live catalog.
 <details>
 <summary><b>Using ChatGPT or Grok instead?</b> Click here</summary>
 
-- **ChatGPT** (Plus/Pro/Business): Settings → **Connectors** → Advanced → turn on **Developer mode** → New connector → paste `https://market.meshtool.ai/mcp` (no authentication). Browsing and self-signup work today; paid calls from inside ChatGPT need OAuth, which the mesh doesn't speak yet.
+- **ChatGPT** (Plus/Pro/Business): Settings → **Connectors** → Advanced → turn on **Developer mode** → New connector → paste `https://market.meshtool.ai/mcp`. Browsing, search and self-signup are keyless — connect with no credential at all. The first *paid* call answers `401` with a pointer to our OAuth server, so your client walks you through signing in, and from then on calls settle normally.
 - **Grok**: [grok.com/connectors](https://grok.com/connectors) → **New Connector → Custom** → paste `https://market.meshtool.ai/mcp`. Same deal.
 </details>
 
