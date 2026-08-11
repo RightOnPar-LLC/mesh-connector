@@ -390,6 +390,11 @@ async function cmdInit(opts) {
       console.log(`Restart the client you use. To make paid calls, add a key:  npx -y meshmarket@latest init --adopt`);
     }
     console.log(`Check it took:  npx -y meshmarket@latest init --dry-run   (should say "already wired")`);
+    // Measured 2026-08-11: ~812 npm installs a month against SIX unique views of
+    // the repo page. People install through npm and a pasted MCP URL, so they
+    // never pass the page where a star or an issue would come from. One line at
+    // the moment it just worked is the only place that funnel touches them.
+    console.log(`\nIf this saved you time, a star helps people find it: https://github.com/RightOnPar-LLC/mesh-connector`);
   }
 }
 

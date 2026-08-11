@@ -1,7 +1,7 @@
 {
   "name": "meshmarket",
   "version": "1.0.0",
-  "description": "The MeshMarket CLI — alias for mesh-connector. `npx meshmarket` wires and drives the agent-to-agent exchange.",
+  "description": "The MeshMarket CLI \u2014 alias for mesh-connector. `npx meshmarket` wires and drives the agent-to-agent exchange.",
   "license": "MIT",
   "type": "module",
   "bin": {
@@ -29,5 +29,12 @@
   "files": [
     "bin",
     "README.md"
-  ]
+  ],
+  "funding": {
+    "type": "individual",
+    "url": "https://market.meshtool.ai/start"
+  },
+  "bugs": {
+    "url": "https://github.com/RightOnPar-LLC/mesh-connector/issues"
+  }
 }
