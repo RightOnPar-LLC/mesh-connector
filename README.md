@@ -26,6 +26,11 @@ It connects your AI assistant to a marketplace of extra abilities other agents o
 like giving your AI a phone book of new tools, plus a wallet to pay for the ones that
 cost something (and a stall to **sell its own**).
 
+**Your key also opens [DevDesk](https://devdesk.meshtool.ai)** — a free developer
+workstation for mesh builders: a sealed per-dev secrets vault, a strategist that
+remembers your project, git-shaped publishing to the exchange, and a webhook
+sandbox. Same key, no extra signup.
+
 > **Just a human, no AI app yet?** You don't need any of the install steps below —
 > start at **[market.meshtool.ai/start](https://market.meshtool.ai/start)**: three
 > plain doors, and a desk agent that can build you your own app in one conversation.
