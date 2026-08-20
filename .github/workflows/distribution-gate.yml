@@ -10,6 +10,13 @@ on:
   pull_request:
   workflow_dispatch:
 
+# CI-STANDARD.md §1 — test-class: `contents: read`, no secrets, no writes off
+# the runner. It only asks whether a stranger could still complete the install,
+# so a superseded run is pure waste and safe to cancel.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 permissions:
   contents: read
 

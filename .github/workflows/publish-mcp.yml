@@ -12,9 +12,25 @@ on:
     tags: ["v*"]
   workflow_dispatch: {}
 
+# CI-STANDARD.md §1 — DEPLOY-CLASS: this pushes server.json to the Official MCP
+# Registry, state that outlives the run and propagates onward to the GitHub MCP
+# Registry and PulseMCP. cancel-in-progress is deliberately FALSE: killing this
+# mid-publish is the silent half-done failure the standard warns about. The
+# group only makes a second run QUEUE — a tag push racing a manual dispatch
+# can no longer double-publish concurrently.
+concurrency:
+  group: publish-mcp-${{ github.repository }}
+  cancel-in-progress: false
+
 jobs:
   publish:
     runs-on: ubuntu-latest
+    # CI-STANDARD.md §2. Measured 2026-08-19: n=5 successful runs, p95 0.3m,
+    # max 0.3m -> formula says 5. Set to 15 on purpose: on a publish job a
+    # timeout that fires early is itself the destructive outcome (a tag
+    # published halfway), so the generous side is the safe side. This exists
+    # only to stop a wedged curl/OIDC handshake from billing 6 hours.
+    timeout-minutes: 15
     permissions:
       id-token: write   # required for OIDC auth to the registry
       contents: read
