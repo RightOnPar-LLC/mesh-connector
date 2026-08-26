@@ -10,10 +10,11 @@
 // the whole estate already uses for secrets.env. The key is printed to the
 // terminal exactly once, at signup, with an explicit "save this" note — it
 // mirrors the API's own "shown once" contract, not a CLI-specific choice.
-import { existsSync, mkdirSync, readFileSync, writeFileSync, chmodSync, unlinkSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync, writeFileSync, chmodSync, unlinkSync, realpathSync } from "node:fs";
 import { homedir } from "node:os";
 import { join, dirname } from "node:path";
 import { createInterface } from "node:readline";
+import { fileURLToPath } from "node:url";
 
 const BASE = process.env.MESH_API_BASE || "https://market.meshtool.ai";
 const CRED_DIR = join(homedir(), ".mesh");
@@ -24,12 +25,12 @@ const CRED_FILE = join(CRED_DIR, "credentials");
 // whole premise here is that AGENTS run this command, straight into a model's
 // context window and whatever chat transcript that agent is writing. Show
 // enough to recognise a key, never enough to spend it.
-const maskKey = (k) => (typeof k === "string" && k.length > 16)
+export const maskKey = (k) => (typeof k === "string" && k.length > 16)
   ? k.slice(0, 12) + "…" + k.slice(-4) : "agk_…";
 // Belt AND braces: mask by value wherever a key could ride inside a larger
 // string (a rendered config entry, an argv array), so adding a new printout
 // later cannot silently reintroduce the leak.
-const redactKey = (text, k) => (typeof text === "string" && typeof k === "string" && k.length > 16)
+export const redactKey = (text, k) => (typeof text === "string" && typeof k === "string" && k.length > 16)
   ? text.split(k).join(maskKey(k)) : text;
 
 function loadKey() {
@@ -267,7 +268,7 @@ function clientTargets() {
 // Two 32-word lists, so a generated handle costs no network round-trip.
 const ADJ = ["amber","brisk","calm","clever","copper","crisp","dawn","deft","eager","fleet","gentle","glad","hollow","iron","jade","keen","lucid","mellow","nimble","north","olive","patient","quick","quiet","rapid","russet","sage","silent","slate","swift","tidal","vivid"];
 const NOUN = ["anchor","badger","beacon","cedar","cinder","comet","crane","delta","ember","falcon","harbor","heron","ridge","kestrel","lantern","meadow","mesa","orbit","otter","pier","quarry","raven","reef","summit","tern","thicket","tide","vector","warden","willow","wren","yard"];
-const slugify = (s) => String(s || "").trim().toLowerCase().replace(/[^a-z0-9-]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 32);
+export const slugify = (s) => String(s || "").trim().toLowerCase().replace(/[^a-z0-9-]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 32);
 function generatedHandle() {
   const pick = (a) => a[Math.floor(Math.random() * a.length)];
   const hex = Math.floor(Math.random() * 0xffff).toString(16).padStart(4, "0");
@@ -400,7 +401,7 @@ async function cmdInit(opts) {
 
 // Minimal, hand-rolled arg parsing: positional args first, then --flag value
 // pairs. No dependency earns its keep at this surface size.
-function parseArgs(argv) {
+export function parseArgs(argv) {
   const positional = [];
   const opts = {};
   for (let i = 0; i < argv.length; i++) {
@@ -464,4 +465,10 @@ async function main() {
   }
 }
 
-main().catch((e) => { console.error("Unexpected error:", e.message); process.exit(1); });
+// Import-safe: the CLI runs ONLY when this file is the entry point, so the
+// selftest can import the pure helpers above without executing a command.
+const invokedDirectly = (() => {
+  try { return process.argv[1] && realpathSync(process.argv[1]) === fileURLToPath(import.meta.url); }
+  catch { return false; }
+})();
+if (invokedDirectly) main().catch((e) => { console.error("Unexpected error:", e.message); process.exit(1); });

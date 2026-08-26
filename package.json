@@ -28,8 +28,9 @@
     "LICENSE"
   ],
   "scripts": {
-    "prepublishOnly": "node tools/distribution-gate.mjs",
-    "test": "node tools/distribution-gate.mjs"
+    "prepublishOnly": "node tools/distribution-gate.mjs && node tests/selftest.mjs",
+    "test": "node tools/distribution-gate.mjs && node tests/selftest.mjs",
+    "selftest": "node tests/selftest.mjs"
   },
   "funding": {
     "type": "individual",
