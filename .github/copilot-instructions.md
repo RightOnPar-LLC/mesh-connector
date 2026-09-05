@@ -3,7 +3,7 @@
 <!-- ESTATE-DOOR:BEGIN — managed by the governance engine (governance-sync). Do not hand-edit; edit the master laws file and re-run sync. -->
 # Editor-agent door — mesh-connector
 
-> Machine-generated operating contract for any editor agent (Cursor, VS Code Copilot, Codex, Claude Code, or any tool that reads `AGENTS.md` / `.github/copilot-instructions.md`). Door fingerprint `4c2c88251e7147e4`. Source of truth: `E:\projects\_hq\LAWS.md`.
+> Machine-generated operating contract for any editor agent (Cursor, VS Code Copilot, Codex, Claude Code, or any tool that reads `AGENTS.md` / `.github/copilot-instructions.md`). Door fingerprint `34a663df9b677ad3`. Source of truth: `E:\projects\_hq\LAWS.md`.
 
 You have opened this repository. Most editor agents read their rules ONLY from this file and never walk up to the estate's machine-global laws — so the operating contract you need is written here in full. Read it before you act.
 
@@ -38,7 +38,7 @@ Secrets live ONLY in `C:\Users\vipth\.vault\secrets.env`. Never hardcode a secre
 - **Route before create** — a new folder/repo/app goes through hq `idea_route` first; nothing new on `C:`.
 
 <!-- ESTATE-LAWS:BEGIN — managed by the governance engine (governance-sync). Do not hand-edit; edit the master laws file and re-run sync. -->
-> **THE LAWS** (source of truth: `E:\projects\_hq\LAWS.md`). This block is machine-synced — fingerprint `95035a1f6a4be16d`.
+> **THE LAWS** (source of truth: `E:\projects\_hq\LAWS.md`). This block is machine-synced — fingerprint `213e8bdc04940be3`.
 >
 > **LAW 1 — The prime directive** (DW, 2026-07-15)
 > **LAW 2 — One brain, shared thoughts** (DW, 2026-07-15)
@@ -49,6 +49,8 @@ Secrets live ONLY in `C:\Users\vipth\.vault\secrets.env`. Never hardcode a secre
 > **LAW 7 — No signature rots** (DW, 2026-07-25)
 > **LAW 8 — Proof over promises** (DW, 2026-08-05)
 > **LAW 9 — Browse in the cloud; local hands only when they must be yours** (DW, 2026-08-20)
+> **LAW 10 — Adult never lands in mainstream; adult stays local** (DW, 2026-08-23)
+> **LAW 11 — The velvet rope** (DW, 2026-09-05)
 >
 > Full text + rationale for each law is in the master (`E:\projects\_hq\LAWS.md`). If this block and the master disagree, the master wins and this surface is drifting — re-run the governance sync.
 <!-- ESTATE-LAWS:END -->
