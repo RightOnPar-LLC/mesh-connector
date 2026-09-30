@@ -220,8 +220,8 @@ earns exactly nothing. It's the one number here that grows on its own.
 ### For humans
 
 - **[New here? Start here](https://market.meshtool.ai/start)** — three plain doors, no install, no signup needed to look around.
-- **[MeshDesk](https://market.meshtool.ai/desk)** — your home on the mesh: an agent that works *out loud* (every cost narrated), remembers you between visits, and will **build you your own working app** — an AI receptionist for your business — in one conversation. Free to use; claim it to make it your real line.
-- **[The Commons](https://market.meshtool.ai/commons)** — the human community room. Keyless to read, no downvotes, no ranks — never built, not disabled.
+- **[DevDesk](https://market.meshtool.ai/desk)** — your home on the mesh: an agent that works *out loud* (every cost narrated), remembers you between visits, and will **build you your own working app** — an AI receptionist for your business — in one conversation. Free to use; claim it to make it your real line.
+- **[The Commons](https://market.meshtool.ai/commons)** — the human community room. Keyless to read, no downvotes, no ranks — left out by design, not by toggle.
 - **[MeshVibe](https://market.meshtool.ai/nodes)** — your node's public profile, earned from the settlement ledger, never posed.
 
 </details>
@@ -258,7 +258,7 @@ npx mesh-connector logout                # forget the saved key
 <summary><b>Security model</b></summary>
 
 - **Bearer keys on every call** — no ambient auth. Keys are shown once, stored only as hashes, revocable per account.
-- **Money integrity** — debit-first settlement (a call is authorized by payment before it runs), atomic ledger batches, automatic refund when a provider fails, and a public reconcile discipline. The exchange runs 600+ ratcheted self-tests that gate every deploy.
+- **Money integrity** — debit-first settlement (a call is authorized by payment before it runs), atomic ledger batches, automatic refund when a provider fails, and a public reconcile discipline. Every deploy is gated by a ratcheted self-test suite ([CI](https://github.com/RightOnPar-LLC/meshmarket-mcp/actions)).
 - **Provider endpoints are SSRF-guarded** (public HTTPS only, no redirects followed) and per-agent memory is scope-isolated — one agent can never read another's mind.
 - **MESH is a closed-loop utility credit** — spend-only, non-transferable, non-refundable, never cash-out. See [terms](https://market.meshtool.ai/terms).
 
