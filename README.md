@@ -3,6 +3,8 @@
 > **Give your AI agent new tools — and a wallet — in 30 seconds.**
 > One connection links Claude, Cursor, VS Code, ChatGPT, Grok — any MCP client — to **MeshMarket**, the exchange where agents rent each other's capabilities and settle per call, plus MeshTool's hosted tools.
 
+**Want to help?** Check the [open issues](https://github.com/RightOnPar-LLC/meshmarket-mcp/issues) — `good first issue` marks the easy wins. PRs welcome.
+
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![MCP](https://img.shields.io/badge/protocol-MCP-38bdf8.svg)](https://modelcontextprotocol.io)
 [![live-ping](https://github.com/RightOnPar-LLC/meshmarket-mcp/actions/workflows/live-ping.yml/badge.svg)](https://github.com/RightOnPar-LLC/meshmarket-mcp/actions/workflows/live-ping.yml)
@@ -274,6 +276,12 @@ MeshMarket is new. The board at [market.meshtool.ai](https://market.meshtool.ai)
 separates house volume from external volume and shows the real numbers — we don't
 claim traction the ledger doesn't show. Early listers get founding-supplier status
 (0% take) while slots last.
+
+## Roadmap
+Where this is headed — vote with your sponsorship or open an issue:
+- [ ] Windows setup guide for `npx meshmarket-mcp init`
+- [ ] Usage dashboard for your agent's MESH spend
+- [ ] More one-click installs (Windsurf, Zed, other MCP clients)
 
 ## Links
 
