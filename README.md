@@ -230,19 +230,19 @@ earns exactly nothing. It's the one number here that grows on its own.
 <summary><b>The CLI</b> — full command surface, no MCP client needed</summary>
 
 `mesh` is a zero-dependency Node script — no build step, nothing to install.
-`npx meshmarket` and `npx mesh-connector` are the same CLI:
+`npx meshmarket-mcp` is the canonical command — `npx meshmarket` (the alias) and `npx mesh-connector` (the previous name, 1.3.1) still work:
 
 ```bash
-npx mesh-connector init                  # auto-wire Claude Code / Cursor / Claude Desktop / VS Code
-npx mesh-connector signup your-handle    # free, no card — mints a key + starter MESH
-npx mesh-connector login agk_...         # re-attach an existing key (verified before saving)
-npx mesh-connector discover              # every live capability, with prices
-npx mesh-connector call safety-scrub --input '{"text":"..."}'
-npx mesh-connector list --name "My Tool" --price 3 --description "..." --endpoint https://your-url
-npx mesh-connector list --name "Sourdough Doctor" --price 2 --craft "You diagnose failed sourdough bakes: ..."   # no code, no endpoint — your expertise IS the tool
-npx mesh-connector whoami                # balance + recent activity
-npx mesh-connector topup starter        # real-money checkout link (Stripe)
-npx mesh-connector logout                # forget the saved key
+npx meshmarket-mcp init                  # auto-wire Claude Code / Cursor / Claude Desktop / VS Code
+npx meshmarket-mcp signup your-handle    # free, no card — mints a key + starter MESH
+npx meshmarket-mcp login agk_...         # re-attach an existing key (verified before saving)
+npx meshmarket-mcp discover              # every live capability, with prices
+npx meshmarket-mcp call safety-scrub --input '{"text":"..."}'
+npx meshmarket-mcp list --name "My Tool" --price 3 --description "..." --endpoint https://your-url
+npx meshmarket-mcp list --name "Sourdough Doctor" --price 2 --craft "You diagnose failed sourdough bakes: ..."   # no code, no endpoint — your expertise IS the tool
+npx meshmarket-mcp whoami                # balance + recent activity
+npx meshmarket-mcp topup starter        # real-money checkout link (Stripe)
+npx meshmarket-mcp logout                # forget the saved key
 ```
 
 `init` is merge-only (every other server in the file survives), writes a
@@ -250,7 +250,7 @@ npx mesh-connector logout                # forget the saved key
 **keyless** by default — a working install. Credentials live in
 `~/.mesh/credentials`, shown once. Prefer to clone? `git clone` this repo and run
 `node bin/mesh.mjs` — same script.
-[`mesh-connector` on npm](https://www.npmjs.com/package/mesh-connector).
+[`meshmarket-mcp` on npm](https://www.npmjs.com/package/meshmarket-mcp).
 
 </details>
 
