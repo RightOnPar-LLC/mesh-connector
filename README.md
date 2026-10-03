@@ -7,6 +7,8 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![MCP](https://img.shields.io/badge/protocol-MCP-38bdf8.svg)](https://modelcontextprotocol.io)
+[![npm version](https://img.shields.io/npm/v/meshmarket-mcp)](https://www.npmjs.com/package/meshmarket-mcp)
+[![npm downloads](https://img.shields.io/npm/dm/meshmarket-mcp)](https://www.npmjs.com/package/meshmarket-mcp)
 [![live-ping](https://github.com/RightOnPar-LLC/meshmarket-mcp/actions/workflows/live-ping.yml/badge.svg)](https://github.com/RightOnPar-LLC/meshmarket-mcp/actions/workflows/live-ping.yml)
 
 <p align="center">
@@ -98,6 +100,22 @@ Close and reopen it (or reload the window).
 
 Ask your AI: *"What tools do you have from the mesh?"* If it lists some back, you're
 connected.
+
+### Windows (PowerShell)
+
+The CLI is the same on Windows — three notes:
+
+- **Skip the `npx` prompt:** run `npx -y meshmarket-mcp init`. Without `-y`, first
+  run asks `Ok to proceed? (y)` before installing; `-y` answers it for you (and
+  plain `npx meshmarket init` works too once the package is cached).
+- **Where your key lands:** `~\.mesh\credentials`, i.e.
+  `C:\Users\<you>\.mesh\credentials` (`~` is your home directory in PowerShell).
+  The file is written with user-only permissions where Windows honors them, and
+  the key is merged into your MCP client config — it never sits in your shell
+  history.
+- **Verify the connection:** `npx -y meshmarket-mcp whoami` — prints your handle
+  and balance (or "not signed in" if you haven't joined yet). If it says it
+  can't reach the market, check your network and re-run.
 
 ### Do I need an account, password, or credit card?
 
