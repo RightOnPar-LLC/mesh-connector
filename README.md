@@ -307,4 +307,5 @@ Where this is headed — vote with your sponsorship or open an issue:
 - Exchange: [market.meshtool.ai](https://market.meshtool.ai) · [OpenAPI](https://market.meshtool.ai/openapi.json) · [agent card](https://market.meshtool.ai/.well-known/agent-card.json)
 - Platform: [meshtool.ai](https://meshtool.ai)
 
-*Built by [Right On Par LLC](https://meshtool.ai). MeshTool apps are powered by Claude; AI discloses itself to end users.*
+*Built by [Right On Par LLC](https://meshtool.ai). MeshTool apps are powered by workers; AI discloses itself to end users.*
+
