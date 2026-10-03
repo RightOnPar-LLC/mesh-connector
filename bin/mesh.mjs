@@ -68,8 +68,12 @@ async function api(method, path, { key, body } = {}) {
   try {
     res = await fetch(BASE + path, { method, headers, body: body ? JSON.stringify(body) : undefined, signal: AbortSignal.timeout(25000) });
   } catch (e) {
+    // Network-level failure (DNS, refused connection, reset) or a timeout. Keep a
+    // compact technical detail for debugging; report() turns this into the one
+    // human sentence a person at a terminal actually needs. Exit codes unchanged.
     const timedOut = e.name === "TimeoutError" || e.name === "AbortError";
-    return { status: 0, ok: false, body: { error: timedOut ? "request timed out after 25s" : `network error: ${e.message}` } };
+    const detail = timedOut ? "timed out after 25s" : (e.cause?.code || e.cause?.message || e.message);
+    return { status: 0, ok: false, body: { error: detail } };
   }
   let json = null;
   try { json = await res.json(); } catch { /* non-JSON response, e.g. a network-level failure page */ }
@@ -81,7 +85,8 @@ async function api(method, path, { key, body } = {}) {
 // no command silently swallows a server error into a generic "it failed".
 function report(r, okMessage) {
   if (r.ok) { if (okMessage) console.log(okMessage(r.body)); return true; }
-  if (r.status === 401) console.error("Not signed in (or key rejected). Run: mesh signup <handle>");
+  if (r.status === 0) console.error(`Can't reach the market — check your connection. (${r.body?.error || "no response from market.meshtool.ai"})`);
+  else if (r.status === 401) console.error("Not signed in (or key rejected). Run: mesh signup <handle>");
   else if (r.status === 402) console.error(`Payment required — need ${r.body?.price ?? "?"} MESH, have ${r.body?.balance ?? "?"}. Run: mesh topup starter`);
   else if (r.status === 429) console.error(`Rate limited: ${r.body?.error || "slow down and try again shortly"}`);
   else console.error(`Error (HTTP ${r.status}): ${r.body?.error || JSON.stringify(r.body) || "no response body"}`);
